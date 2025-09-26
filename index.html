@@ -1,0 +1,3057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* Liquid Glass Effects */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .liquid-glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        /* Scrollbar positioning */
+        .chat-container {
+            padding-right: 0 !important;
+        }
+        
+        /* Hide scrollbar */
+        .chat-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .chat-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Chat bubble responsive sizing */
+        .chat-message {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: none; /* Prevent automatic hyphenation */
+            line-height: 1.6;
+            max-width: 60ch; /* Character-based max width for readability */
+        }
+        
+        /* Responsive max-width for different screen sizes */
+        @media (min-width: 640px) {
+            .chat-message {
+                max-width: min(60ch, 640px);
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .chat-message {
+                max-width: min(65ch, 720px);
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .chat-message {
+                max-width: min(70ch, 800px);
+            }
+        }
+        
+        @media (min-width: 1280px) {
+            .chat-message {
+                max-width: min(75ch, 900px);
+            }
+        }
+        
+        /* Ensure proper text flow for long content */
+        .chat-message p, .chat-message div {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: none; /* Prevent hyphenation in paragraphs and divs */
+        }
+        
+        /* Additional text wrapping rules for better readability */
+        .chat-message {
+            word-break: normal; /* Use normal word breaking rules */
+            white-space: normal; /* Allow normal whitespace handling */
+        }
+        
+        /* Bubble Layout */
+        .chat-bubble-user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px 20px 4px 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .chat-bubble-ai {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 20px 20px 20px 4px;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+        }
+        
+        .chat-bubble-ai-dark {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 20px 20px 20px 4px;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+        
+        /* Smooth Transitions */
+        .theme-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Professional Gradients */
+        .gradient-bg-light {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-bg-dark {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Glow Effects */
+        .glow-light {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .glow-dark {
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
+        }
+        
+        /* Citation highlight effect */
+        .highlight-source {
+            background: #ffe082 !important;
+            transition: background 0.3s;
+            border: 2px solid #f59e0b !important;
+            color: #000000 !important; /* Black text for readability */
+        }
+        
+        /* Markdown formatting styles */
+        .markdown-content h1, .markdown-content h2, .markdown-content h3, 
+        .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+            font-weight: bold;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.25;
+            hyphens: none; /* Prevent hyphenation in headers */
+        }
+        
+        .markdown-content h1 { font-size: 1.5rem; }
+        .markdown-content h2 { font-size: 1.25rem; }
+        .markdown-content h3 { font-size: 1.125rem; }
+        .markdown-content h4 { font-size: 1rem; }
+        .markdown-content h5 { font-size: 0.875rem; }
+        .markdown-content h6 { font-size: 0.75rem; }
+        
+        .markdown-content ul, .markdown-content ol {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+        
+        .markdown-content li {
+            margin: 0.25rem 0;
+        }
+        
+        .markdown-content code {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+        
+        .markdown-content pre {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+        }
+        
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        .markdown-content strong {
+            font-weight: bold;
+        }
+        
+        .markdown-content em {
+            font-style: italic;
+        }
+        
+        .markdown-content p {
+            margin: 0.5rem 0;
+            hyphens: none; /* Prevent hyphenation in paragraphs */
+            word-break: normal; /* Use normal word breaking */
+        }
+        
+        .markdown-content blockquote {
+            border-left: 4px solid #e5e7eb;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            font-style: italic;
+            border-radius: 4px;
+        }
+        
+        /* Citation link styling - compact LLM style */
+        .citation-link {
+            font-size: 0.7em !important;
+            font-weight: 500 !important;
+            padding: 1px 4px !important;
+            margin: 0 2px !important;
+            border-radius: 3px !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: rgba(156, 163, 175, 0.2) !important;
+            color: #6b7280 !important;
+            vertical-align: baseline !important;
+            line-height: 1.2 !important;
+            min-width: 16px !important;
+            text-align: center !important;
+            display: inline-block !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        .citation-link:hover {
+            background: rgba(75, 85, 99, 0.8) !important;
+            color: #ffffff !important;
+            cursor: pointer !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .citation-link:active {
+            background: rgba(75, 85, 99, 0.9) !important;
+            color: #ffffff !important;
+            transform: none !important;
+        }
+        
+        /* Dark theme citation styling */
+        .dark .citation-link {
+            background: rgba(75, 85, 99, 0.3) !important;
+            color: #9ca3af !important;
+        }
+        
+        .dark .citation-link:hover {
+            background: rgba(156, 163, 175, 0.8) !important;
+            color: #ffffff !important;
+            cursor: pointer !important;
+        }
+        
+        .dark .citation-link:active {
+            background: rgba(156, 163, 175, 0.9) !important;
+            color: #ffffff !important;
+        }
+        
+        .dark .highlight-source {
+            background: #374151 !important;
+            border: 2px solid #fbbf24 !important;
+            color: #ffffff !important; /* White text for dark theme readability */
+        }
+        
+        /* Citation highlight effect in text */
+        .citation-highlight {
+            background: #fef3c7 !important;
+            border: 2px solid #f59e0b !important;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4) !important;
+            color: #000000 !important; /* Black text for readability */
+            transition: all 0.3s ease !important;
+        }
+        
+        .dark .citation-highlight {
+            background: #451a03 !important;
+            border: 2px solid #fbbf24 !important;
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.4) !important;
+            color: #ffffff !important; /* White text for dark theme readability */
+        }
+        
+        /* Enhanced citation box styling - removed duplicate styles */
+    </style>
+</head>
+    <body class={`min-h-screen flex theme-transition ${
+        theme === 'dark' 
+            ? 'bg-[#141414] text-gray-100' 
+            : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-gray-900'
+    }`}>
+    <div id="root" class="flex w-screen h-screen"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Universal Navigation Bar Component
+        const UniversalNavbar = ({ 
+            currentPage = 'chatbot', // 'chatbot', 'news', 'watchlist'
+            theme = 'light',
+            currentUser = null,
+            showUserMenu = false,
+            setShowUserMenu = () => {},
+            handleLogout = () => {},
+            title = null // Optional custom title, defaults to page-specific titles
+        }) => {
+            const getPageTitle = () => {
+                if (title) return title;
+                switch (currentPage) {
+                    case 'chatbot': return 'Stock Analysis Chatbot';
+                    case 'news': return 'Malaysia News';
+                    case 'watchlist': return 'My Watchlist';
+                    default: return 'Stock Analysis Platform';
+                }
+            };
+
+            const getNavigationLinks = () => {
+                const links = [
+                    { 
+                        key: 'chatbot', 
+                        href: '/', 
+                        label: 'Chatbot', 
+                        color: 'blue',
+                        active: currentPage === 'chatbot'
+                    },
+                    { 
+                        key: 'news', 
+                        href: '/news.html', 
+                        label: 'News', 
+                        color: 'green',
+                        active: currentPage === 'news'
+                    },
+                    { 
+                        key: 'watchlist', 
+                        href: '/watchlist.html', 
+                        label: 'Watchlist', 
+                        color: 'purple',
+                        active: currentPage === 'watchlist'
+                    }
+                ];
+                
+                // Filter out current page from navigation links
+                return links.filter(link => !link.active);
+            };
+
+            const getButtonClasses = (color, isActive = false) => {
+                const baseClasses = "px-3 py-1.5 rounded-lg font-medium transition-colors text-xs";
+                
+                if (isActive) {
+                    return `${baseClasses} ${
+                        theme === 'dark' 
+                            ? 'bg-gray-700 text-white' 
+                            : 'bg-gray-200 text-gray-900'
+                    }`;
+                }
+
+                const colorClasses = {
+                    blue: theme === 'dark' 
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : 'bg-blue-500 text-white hover:bg-blue-600',
+                    green: theme === 'dark' 
+                        ? 'bg-green-600 text-white hover:bg-green-700' 
+                        : 'bg-green-500 text-white hover:bg-green-600',
+                    purple: theme === 'dark' 
+                        ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                        : 'bg-purple-500 text-white hover:bg-purple-600'
+                };
+
+                return `${baseClasses} ${colorClasses[color]}`;
+            };
+
+            return React.createElement('div', {
+                className: `p-2 border-b theme-transition z-30 ${
+                    theme === 'dark' 
+                        ? 'liquid-glass-dark border-gray-600' 
+                        : 'liquid-glass border-gray-200'
+                }`
+            }, 
+                React.createElement('div', {
+                    className: 'max-w-7xl mx-auto'
+                },
+                    React.createElement('div', {
+                        className: 'flex items-center justify-between'
+                    },
+                        // Left side - Title with optional back button for watchlist
+                        React.createElement('div', {
+                            className: 'flex items-center space-x-4'
+                        },
+                            // Back button for watchlist page
+                            currentPage === 'watchlist' && React.createElement('button', {
+                                onClick: () => window.location.href = '/',
+                                className: 'p-1.5 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors'
+                            },
+                                React.createElement('svg', {
+                                    className: 'w-4 h-4',
+                                    fill: 'none',
+                                    stroke: 'currentColor',
+                                    viewBox: '0 0 24 24'
+                                },
+                                    React.createElement('path', {
+                                        strokeLinecap: 'round',
+                                        strokeLinejoin: 'round',
+                                        strokeWidth: '2',
+                                        d: 'M10 19l-7-7m0 0l7-7m-7 7h18'
+                                    })
+                                )
+                            ),
+                            // Page title
+                            React.createElement('h1', {
+                                className: `text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`
+                            }, getPageTitle())
+                        ),
+
+                        // Right side - Navigation Links and User Profile
+                        React.createElement('div', {
+                            className: 'flex items-center space-x-3'
+                        },
+                            // Navigation Links - moved to right side near profile
+                            React.createElement('div', {
+                                className: 'flex items-center space-x-2'
+                            },
+                                ...getNavigationLinks().map(link => 
+                                    React.createElement('a', {
+                                        key: link.key,
+                                        href: link.href,
+                                        className: getButtonClasses(link.color)
+                                    }, link.label)
+                                )
+                            ),
+
+                            // User Profile
+                            currentUser && React.createElement('div', {
+                                className: 'relative'
+                            },
+                                React.createElement('button', {
+                                    onClick: () => setShowUserMenu(!showUserMenu),
+                                    className: `flex items-center space-x-2 p-1.5 rounded-lg transition-colors ${
+                                        theme === 'dark' 
+                                            ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                                            : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                                    }`
+                                },
+                                    React.createElement('div', {
+                                        className: 'w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium text-xs'
+                                    }, currentUser.first_name ? currentUser.first_name[0].toUpperCase() : currentUser.email[0].toUpperCase()),
+                                    React.createElement('span', {
+                                        className: 'text-sm font-medium'
+                                    }, currentUser.first_name || 'User'),
+                                    React.createElement('svg', {
+                                        className: 'w-3 h-3',
+                                        fill: 'none',
+                                        stroke: 'currentColor',
+                                        viewBox: '0 0 24 24'
+                                    },
+                                        React.createElement('path', {
+                                            strokeLinecap: 'round',
+                                            strokeLinejoin: 'round',
+                                            strokeWidth: '2',
+                                            d: 'M19 9l-7 7-7-7'
+                                        })
+                                    )
+                                ),
+
+                                // User dropdown menu
+                            showUserMenu && React.createElement('div', {
+                                className: `absolute right-0 mt-2 w-48 ${
+                                    theme === 'dark' 
+                                        ? 'bg-gray-800 border-gray-700' 
+                                        : 'bg-white border-gray-200'
+                                } rounded-lg shadow-lg border z-50`
+                            },
+                                React.createElement('div', {
+                                    className: 'py-1'
+                                },
+                                    // User info
+                                    React.createElement('div', {
+                                        className: `px-4 py-2 border-b ${
+                                            theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                                        }`
+                                    },
+                                        React.createElement('p', {
+                                            className: `text-sm font-medium ${
+                                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                            }`
+                                        }, currentUser.full_name || currentUser.email),
+                                        React.createElement('p', {
+                                            className: `text-xs ${
+                                                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                                            }`
+                                        }, currentUser.email)
+                                    ),
+                                    // Profile link
+                                    React.createElement('a', {
+                                        href: '/auth/profile',
+                                        className: `block px-4 py-2 text-sm transition-colors ${
+                                            theme === 'dark' 
+                                                ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                        }`
+                                    }, 'Profile'),
+                                    // Logout button
+                                    React.createElement('button', {
+                                        onClick: handleLogout,
+                                        className: `block w-full text-left px-4 py-2 text-sm transition-colors ${
+                                            theme === 'dark' 
+                                                ? 'text-red-400 hover:bg-gray-700 hover:text-red-300' 
+                                                : 'text-red-600 hover:bg-gray-100'
+                                        }`
+                                    }, 'Logout')
+                                )
+                            )
+                        )
+                    )
+                )
+                        )            );
+        };
+
+        // Live Timer Component
+        const LiveTimer = ({ startTime, theme }) => {
+            const [elapsedTime, setElapsedTime] = useState(0);
+
+            useEffect(() => {
+                if (!startTime) return;
+                
+                const interval = setInterval(() => {
+                    const now = Date.now();
+                    const elapsed = ((now - startTime) / 1000).toFixed(1);
+                    setElapsedTime(elapsed);
+                }, 100); // Update every 100ms for smooth animation
+
+                return () => clearInterval(interval);
+            }, [startTime]);
+
+            if (!startTime) return null;
+
+            return (
+                <span className={`text-xs ${theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} font-mono ml-2`}>
+                    {elapsedTime}s
+                </span>
+            );
+        };
+
+        // Configuration - Change this port when needed
+        const API_BASE_URL = 'http://localhost:5000'; // Change this port as needed
+
+        class ErrorBoundary extends React.Component {
+            state = { error: null };
+            static getDerivedStateFromError(error) {
+                return { error: error.message };
+            }
+            render() {
+                if (this.state.error) {
+                    return (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-4 dark:bg-red-900 dark:border-red-700 dark:text-red-200">
+                            Error: {this.state.error}
+                        </div>
+                    );
+                }
+                return this.props.children;
+            }
+        }
+
+        const TypingAnimation = () => (
+            <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+        );
+
+        // Delete Chat Modal Component
+        const DeleteChatModal = ({ isOpen, onClose, onConfirm, theme }) => {
+            const [isDeleting, setIsDeleting] = useState(false);
+            const [isDeleted, setIsDeleted] = useState(false);
+
+            const handleConfirm = async () => {
+                setIsDeleting(true);
+                // Simulate deletion process
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                setIsDeleting(false);
+                setIsDeleted(true);
+                
+                // Wait a moment to show "deleted" message, then confirm
+                setTimeout(() => {
+                    onConfirm();
+                    setIsDeleted(false);
+                    onClose();
+                }, 1000);
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className={`max-w-sm w-full mx-4 p-6 rounded-2xl theme-transition ${
+                        theme === 'dark' 
+                            ? 'liquid-glass-dark text-white' 
+                            : 'liquid-glass text-gray-900'
+                    }`}>
+                        <div className="text-center">
+                            {!isDeleting && !isDeleted && (
+                                <>
+                                    <div className="text-red-500 text-4xl mb-4">🗑️</div>
+                                    <h3 className="text-lg font-semibold mb-2">Delete Chat</h3>
+                                    <p className="text-gray-600 mb-6">Are you sure you want to delete this chat? This action cannot be undone.</p>
+                                    <div className="flex space-x-3">
+                                        <button
+                                            onClick={onClose}
+                                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleConfirm}
+                                            className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                            
+                            {isDeleting && (
+                                <div className="text-center py-8">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                                    <h4 className="text-lg font-semibold mb-2">Deleting chat...</h4>
+                                    <p className="text-gray-600">Please wait</p>
+                                </div>
+                            )}
+                            
+                            {isDeleted && (
+                                <div className="text-center py-8">
+                                    <div className="text-green-500 text-4xl mb-4">✓</div>
+                                    <h4 className="text-lg font-semibold mb-2">Chat Deleted</h4>
+                                    <p className="text-gray-600">Redirecting to new chat...</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Feedback Modal Component
+        const FeedbackModal = ({ isOpen, onClose, analysisData, theme }) => {
+            const [rating, setRating] = useState(0);
+            const [feedbackType, setFeedbackType] = useState('star_rating');
+            const [comment, setComment] = useState('');
+            const [isSubmitting, setIsSubmitting] = useState(false);
+            const [submitStatus, setSubmitStatus] = useState(null);
+
+            const handleSubmit = async () => {
+                if (rating === 0) {
+                    alert('Please provide a rating');
+                    return;
+                }
+
+                setIsSubmitting(true);
+                try {
+                    const feedbackData = {
+                        analysis_id: analysisData.analysis_id,
+                        rating: rating,
+                        feedback_type: feedbackType,
+                        comment: comment,
+                        query: analysisData.query,
+                        ticker: analysisData.ticker,
+                        risk_score: analysisData.risk_score,
+                        session_id: localStorage.getItem('session_id') || 'anonymous'
+                    };
+
+                    const response = await fetch(`${API_BASE_URL}/feedback`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(feedbackData)
+                    });
+
+                    if (response.ok) {
+                        setSubmitStatus('success');
+                        setTimeout(() => {
+                            onClose();
+                            setRating(0);
+                            setComment('');
+                            setSubmitStatus(null);
+                        }, 2000);
+                    } else {
+                        setSubmitStatus('error');
+                    }
+                } catch (error) {
+                    setSubmitStatus('error');
+                } finally {
+                    setIsSubmitting(false);
+                }
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className={`max-w-md w-full mx-4 p-6 rounded-2xl theme-transition ${
+                        theme === 'dark' 
+                            ? 'liquid-glass-dark text-white' 
+                            : 'liquid-glass text-gray-900'
+                    }`}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">Rate this Analysis</h3>
+                            <button
+                                onClick={onClose}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {submitStatus === 'success' ? (
+                            <div className="text-center py-8">
+                                <div className="text-green-500 text-6xl mb-4">✓</div>
+                                <h4 className="text-xl font-semibold mb-2">Thank You!</h4>
+                                <p className="text-gray-600">Your feedback has been submitted successfully.</p>
+                            </div>
+                        ) : submitStatus === 'error' ? (
+                            <div className="text-center py-8">
+                                <div className="text-red-500 text-6xl mb-4">✗</div>
+                                <h4 className="text-xl font-semibold mb-2">Error</h4>
+                                <p className="text-gray-600">Failed to submit feedback. Please try again.</p>
+                                <button
+                                    onClick={() => setSubmitStatus(null)}
+                                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                                >
+                                    Try Again
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="mb-6">
+                                    <label className="block text-sm font-medium mb-2">Rating</label>
+                                    <div className="flex justify-center space-x-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                                key={star}
+                                                onClick={() => setRating(star)}
+                                                className={`text-2xl transition-colors ${
+                                                    star <= rating ? 'text-yellow-400' : 'text-gray-300'
+                                                }`}
+                                            >
+                                                ★
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <p className="text-center text-sm text-gray-500 mt-2">
+                                        {rating === 0 && 'Click to rate'}
+                                        {rating === 1 && 'Poor'}
+                                        {rating === 2 && 'Fair'}
+                                        {rating === 3 && 'Good'}
+                                        {rating === 4 && 'Very Good'}
+                                        {rating === 5 && 'Excellent'}
+                                    </p>
+                                </div>
+
+                                <div className="mb-6">
+                                    <label className="block text-sm font-medium mb-2">Feedback Type</label>
+                                    <select
+                                        value={feedbackType}
+                                        onChange={(e) => setFeedbackType(e.target.value)}
+                                        className={`w-full p-2 rounded-lg border ${
+                                            theme === 'dark' 
+                                                ? 'bg-gray-700 text-white border-gray-600' 
+                                                : 'bg-white text-gray-900 border-gray-300'
+                                        }`}
+                                    >
+                                        <option value="star_rating">Star Rating</option>
+                                        <option value="thumbs_up">Thumbs Up</option>
+                                        <option value="thumbs_down">Thumbs Down</option>
+                                        <option value="detailed">Detailed Feedback</option>
+                                    </select>
+                                </div>
+
+                                <div className="mb-6">
+                                    <label className="block text-sm font-medium mb-2">Additional Comments (Optional)</label>
+                                    <textarea
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        placeholder="Share your thoughts about this analysis..."
+                                        rows="3"
+                                        className={`w-full p-2 rounded-lg border resize-none ${
+                                            theme === 'dark' 
+                                                ? 'bg-gray-700 text-white border-gray-600' 
+                                                : 'bg-white text-gray-900 border-gray-300'
+                                        }`}
+                                    />
+                                </div>
+
+                                <div className="flex space-x-3">
+                                    <button
+                                        onClick={onClose}
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSubmit}
+                                        disabled={isSubmitting || rating === 0}
+                                        className={`flex-1 px-4 py-2 rounded-lg ${
+                                            isSubmitting || rating === 0
+                                                ? 'bg-gray-400 cursor-not-allowed'
+                                                : 'bg-blue-500 text-white hover:bg-blue-600'
+                                        }`}
+                                    >
+                                        {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Function to group conversations by date
+        const groupConversationsByDate = (conversations) => {
+            const now = new Date();
+            
+            // Create date boundaries in local time for comparison
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const thisWeek = new Date(today);
+            thisWeek.setDate(thisWeek.getDate() - 7);
+            const lastMonth = new Date(today);
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+            const groups = {
+                today: [],
+                yesterday: [],
+                thisWeek: [],
+                lastMonth: [],
+                older: []
+            };
+
+            conversations.forEach((conv, index) => {
+                // Parse the conversation date (which is in UTC ISO string format)
+                const convDate = new Date(conv.createdAt);
+                
+                // Convert to local date for comparison
+                // This handles the timezone conversion properly
+                const convLocalDate = new Date(convDate.getFullYear(), convDate.getMonth(), convDate.getDate());
+                
+                // Compare with local date boundaries
+                if (convLocalDate.getTime() === today.getTime()) {
+                    groups.today.push({ ...conv, originalIndex: index });
+                } else if (convLocalDate.getTime() === yesterday.getTime()) {
+                    groups.yesterday.push({ ...conv, originalIndex: index });
+                } else if (convLocalDate >= thisWeek) {
+                    groups.thisWeek.push({ ...conv, originalIndex: index });
+                } else if (convLocalDate >= lastMonth) {
+                    groups.lastMonth.push({ ...conv, originalIndex: index });
+                } else {
+                    groups.older.push({ ...conv, originalIndex: index });
+                }
+            });
+
+            return groups;
+        };
+
+        const Sidebar = ({ conversations, setCurrentConversation, startNewConversation, deleteConversation, currentConversationIndex, theme, toggleSidebar, toggleTheme, openProfile }) => {
+            const groupedConversations = groupConversationsByDate(conversations);
+            
+            const formatChatDate = (createdAt) => {
+                const date = new Date(createdAt);
+                const now = new Date();
+                
+                // Get local date components for both dates
+                const dateLocal = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                const nowLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                
+                // Calculate difference in days using local dates
+                const diffTime = Math.abs(nowLocal - dateLocal);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) return 'Today';
+                if (diffDays === 1) return 'Yesterday';
+                if (diffDays <= 7) return `${diffDays} days ago`;
+                if (diffDays <= 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+                return date.toLocaleDateString();
+            };
+            
+            const renderConversationGroup = (title, conversations, isExpanded = true) => {
+                if (conversations.length === 0) return null;
+                
+                return (
+                    <div className="mb-4">
+                        <details open={isExpanded}>
+                            <summary className={`text-xs font-medium cursor-pointer ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
+                                {title} ({conversations.length})
+                            </summary>
+                            <ul className="space-y-1">
+                                {conversations.map((conv) => (
+                                    <li key={conv.originalIndex} className="relative group">
+                                        <button
+                                            onClick={() => setCurrentConversation(conv.originalIndex)}
+                                            className={`w-full text-left px-3 py-2 rounded-lg truncate text-xs ${
+                                                conv.originalIndex === currentConversationIndex 
+                                                    ? (theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-200 text-gray-900') 
+                                                    : (theme === 'dark' ? 'text-gray-200 bg-gray-700 hover:bg-gray-600' : 'text-gray-700 bg-gray-100 hover:bg-gray-200')
+                                            }`}
+                                        >
+                                            <div className="flex flex-col">
+                                                <span className="truncate">
+                                                    {conv.messages.length > 0 
+                                                        ? conv.messages[0].content?.query || conv.messages[0].content?.news?.title || 'Chat ' + (conv.originalIndex + 1) 
+                                                        : 'Chat ' + (conv.originalIndex + 1)
+                                                    }
+                                                </span>
+                                                <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                    {formatChatDate(conv.createdAt)}
+                                                </span>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={() => deleteConversation(conv.originalIndex)}
+                                            className="ml-2 p-1 text-red-500 hover:text-red-600 absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </details>
+                    </div>
+                );
+            };
+            
+            return (
+                <div className={`w-64 h-full fixed top-0 left-0 flex flex-col border-r theme-transition ${
+                    theme === 'dark' 
+                        ? 'liquid-glass-dark border-gray-600' 
+                        : 'liquid-glass border-gray-200'
+                }`}>
+                    {/* Header */}
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between">
+                            <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Chats</h2>
+                            <button
+                                onClick={toggleSidebar}
+                                className={`p-2 rounded ${theme === 'dark' ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                                title="Close sidebar"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                        </div>
+                        <button
+                            onClick={startNewConversation}
+                            className="w-full text-left px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mt-4 text-xs"
+                        >
+                            New Chat
+                        </button>
+                    </div>
+                    
+                    {/* Chat List - Scrollable */}
+                    <div className="flex-1 p-4 overflow-y-auto">
+                        {/* Grouped conversations */}
+                        {renderConversationGroup('Today', groupedConversations.today)}
+                        {renderConversationGroup('Yesterday', groupedConversations.yesterday)}
+                        {renderConversationGroup('This Week', groupedConversations.thisWeek)}
+                        {renderConversationGroup('Last Month', groupedConversations.lastMonth)}
+                        {renderConversationGroup('Older', groupedConversations.older, false)}
+                    </div>
+                    
+                    {/* Settings Section - Fixed at Bottom */}
+                    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                        <details className="group">
+                            <summary className={`flex items-center justify-between cursor-pointer text-xs font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} hover:text-gray-800 dark:hover:text-gray-200`}>
+                                <div className="flex items-center">
+                                    Settings
+                                </div>
+                                <svg className={`w-4 h-4 transition-transform group-open:rotate-180 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+                            <div className="mt-3 space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs">Theme</span>
+                                    <button
+                                        onClick={toggleTheme}
+                                        className={`p-2 rounded-lg transition-colors ${
+                                            theme === 'dark' 
+                                                ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' 
+                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        }`}
+                                        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                                    >
+                                        {theme === 'dark' ? (
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+                                            </svg>
+                                        ) : (
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <path fillRule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clipRule="evenodd"/>
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
+                                
+                                {/* Profile Option */}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs">Profile</span>
+                                    <button
+                                        onClick={openProfile}
+                                        className={`p-2 rounded-lg transition-colors ${
+                                            theme === 'dark' 
+                                                ? 'bg-gray-700 text-blue-300 hover:bg-gray-600' 
+                                                : 'bg-gray-200 text-blue-700 hover:bg-gray-300'
+                                        }`}
+                                        title="View Profile"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const [conversations, setConversations] = useState(() => {
+                const saved = localStorage.getItem('conversations');
+                const parsed = saved ? JSON.parse(saved) : [{ messages: [], createdAt: new Date().toISOString() }];
+                // Ensure all conversations have createdAt timestamp
+                return parsed.map(conv => ({
+                    ...conv,
+                    createdAt: conv.createdAt || new Date().toISOString()
+                }));
+            });
+            const [currentConversationIndex, setCurrentConversationIndex] = useState(0);
+            const [error, setError] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [typing, setTyping] = useState(false);
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [currentUser, setCurrentUser] = useState(null);
+            const [showUserMenu, setShowUserMenu] = useState(false);
+            const [authLoading, setAuthLoading] = useState(false);
+            const [theme, setTheme] = useState(() => {
+                const saved = localStorage.getItem('theme');
+                if (saved) return saved;
+                // Auto-detect system preference
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            });
+            const [query, setQuery] = useState('');
+            const [ticker, setTicker] = useState('');
+            const [showSidebar, setShowSidebar] = useState(true);
+            const [conversationContext, setConversationContext] = useState(null);
+            const [analysisStartTime, setAnalysisStartTime] = useState(null);
+            const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+            const [selectedAnalysisData, setSelectedAnalysisData] = useState(null);
+            const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+            const [chatToDelete, setChatToDelete] = useState(null);
+            const [showToast, setShowToast] = useState(false);
+            const [toastMessage, setToastMessage] = useState('');
+
+            // Recommended questions for new chat
+            const recommendedQuestions = [
+                {
+                    text: "How healthy is Tenaga Nasional's financial status?",
+                    query: "financial health analysis for Tenaga Nasional",
+                    ticker: "5347.KL"
+                },
+                {
+                    text: "Risk analysis for Maybank and Malaysian banking sector",
+                    query: "risk assessment and analysis for Maybank and Malaysian banking industry",
+                    ticker: "1155.KL"
+                },
+                {
+                    text: "If I get my investment trapped in certain stock, what should I do?",
+                    query: "investment exit strategies and risk management for trapped positions",
+                    ticker: ""
+                },
+                {
+                    text: "Show me stocks moving because of today's news",
+                    query: "market impact analysis of recent news on stock movements",
+                    ticker: ""
+                },
+                {
+                    text: "Growth opportunities in Malaysian technology sector",
+                    query: "growth potential and expansion opportunities in Malaysian technology sector",
+                    ticker: ""
+                },
+                {
+                    text: "How will interest rate changes affect Malaysian property stocks?",
+                    query: "impact of interest rate changes on Malaysian property and real estate stocks",
+                    ticker: ""
+                },
+                {
+                    text: "Analysis of Petronas Gas financial performance",
+                    query: "financial performance and market analysis for Petronas Gas",
+                    ticker: "6033.KL"
+                },
+                {
+                    text: "Malaysian palm oil sector market trends",
+                    query: "market trends and analysis for Malaysian palm oil sector",
+                    ticker: ""
+                }
+            ];
+
+            const handleRecommendedQuestion = (recommendedQuestion) => {
+                setQuery(recommendedQuestion.query);
+                setTicker(recommendedQuestion.ticker);
+                handleAnalyze(recommendedQuestion.query, recommendedQuestion.ticker);
+            };
+
+            const handleFeedback = (analysisData) => {
+                setSelectedAnalysisData(analysisData);
+                setFeedbackModalOpen(true);
+            };
+
+            const downloadAnalysisResults = (analysisData) => {
+                try {
+                    // Create a clean export object with all relevant analysis data
+                    const exportData = {
+                        timestamp: new Date().toISOString(),
+                        analysis: {
+                            risk_score: analysisData.risk_score || 'N/A',
+                            risk_explanation: analysisData.risk_explanation || 'N/A',
+                            summary: analysisData.summary || 'N/A',
+                            actionable_insights: analysisData.actionable_insights || 'N/A',
+                            query: analysisData.query || 'N/A',
+                            ticker: analysisData.ticker || 'N/A'
+                        },
+                        sources: analysisData.sources || [],
+                        metadata: {
+                            is_first_message: analysisData.is_first_message || false,
+                            is_conversational_response: analysisData.is_conversational_response || false,
+                            export_version: '1.0'
+                        }
+                    };
+
+                    // Convert to JSON string with proper formatting
+                    const jsonString = JSON.stringify(exportData, null, 2);
+                    
+                    // Create blob and download
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `analysis_results_${new Date().toISOString().split('T')[0]}_${Date.now()}.json`;
+                    
+                    // Trigger download
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Clean up
+                    URL.revokeObjectURL(url);
+                    
+                    console.log('Analysis results downloaded successfully');
+                } catch (error) {
+                    console.error('Error downloading analysis results:', error);
+                    alert('Failed to download analysis results. Please try again.');
+                }
+            };
+
+            const handleDeleteChat = (index) => {
+                setChatToDelete(index);
+                setDeleteModalOpen(true);
+            };
+
+            const confirmDeleteChat = () => {
+                setConversations((prev) => {
+                    const updated = [...prev];
+                    updated.splice(chatToDelete, 1);
+                    return updated.length > 0 ? updated : [{ messages: [], createdAt: new Date().toISOString() }];
+                });
+                
+                // Always redirect to homepage (new chat with empty messages)
+                setCurrentConversationIndex(0);
+                
+                // Clear input states
+                setQuery('');
+                setTicker('');
+                setError(null);
+                setConversationContext(null);
+                setLoading(false);
+                setTyping(false);
+                
+                // Show toast notification
+                setToastMessage('Conversation deleted. Starting a new chat...');
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 3000);
+                
+                setChatToDelete(null);
+            };
+
+            // Logout function
+            const handleLogout = async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/auth/logout`, { 
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        window.location.href = '/auth/login';
+                    }
+                } catch (error) {
+                    console.error('Logout failed:', error);
+                }
+            };
+
+            // Authentication check - simplified for testing
+            const checkAuth = async () => {
+                try {
+                    console.log('Starting authentication check...');
+                    setAuthLoading(true);
+                    
+                    const response = await fetch('/auth/check', {
+                        credentials: 'include'
+                    });
+                    const data = await response.json();
+                    console.log('Auth response:', data);
+                    
+                    if (data.authenticated) {
+                        setIsAuthenticated(true);
+                        setCurrentUser(data.user);
+                        console.log('Authentication successful');
+                    } else {
+                        // For testing, just show the main content without redirecting
+                        console.log('Not authenticated, but showing main content for testing');
+                        setIsAuthenticated(false);
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                    // For testing, just show the main content
+                    setIsAuthenticated(false);
+                } finally {
+                    setAuthLoading(false);
+                }
+            };
+
+            useEffect(() => {
+                // Delay auth check to ensure component is fully mounted
+                const timer = setTimeout(() => {
+                    checkAuth();
+                }, 100);
+                
+                // Fallback timeout to prevent infinite loading
+                const fallbackTimer = setTimeout(() => {
+                    if (authLoading) {
+                        console.log('Auth check timeout, showing main content');
+                        setAuthLoading(false);
+                    }
+                }, 5000); // 5 second timeout
+                
+                return () => {
+                    clearTimeout(timer);
+                    clearTimeout(fallbackTimer);
+                };
+            }, []);
+
+            useEffect(() => {
+                document.body.className = `min-h-screen flex ${theme === 'dark' ? 'bg-[#141414] text-gray-100' : 'bg-gray-100 text-gray-900'}`;
+                localStorage.setItem('theme', theme);
+                localStorage.setItem('conversations', JSON.stringify(conversations));
+            }, [theme, conversations]);
+
+            // Check for news conversation state from localStorage
+            useEffect(() => {
+                const savedConversation = localStorage.getItem('chatbot_conversation');
+                const savedNewsContext = localStorage.getItem('chatbot_news_context');
+                
+                if (savedConversation && savedNewsContext) {
+                    try {
+                        const conversationMessages = JSON.parse(savedConversation);
+                        const newsContext = JSON.parse(savedNewsContext);
+                        
+                        // Validate the news context structure
+                        if (!newsContext || typeof newsContext !== 'object') {
+                            console.warn('Invalid news context structure (not an object), clearing data');
+                            localStorage.removeItem('chatbot_conversation');
+                            localStorage.removeItem('chatbot_news_context');
+                            return;
+                        }
+                        
+                        if (!newsContext.title && !newsContext.news?.title) {
+                            console.warn('Invalid news context structure (no title), clearing data');
+                            localStorage.removeItem('chatbot_conversation');
+                            localStorage.removeItem('chatbot_news_context');
+                            return;
+                        }
+                        
+                        // Update conversations with the news-related conversation
+                        // Ensure we don't lose existing conversations
+                        const newConversation = { 
+                            messages: conversationMessages, 
+                            createdAt: new Date().toISOString(),
+                            fromNews: true // Mark this as a news-originated conversation
+                        };
+                        
+                        // Force immediate state updates
+                        setConversations([newConversation]);
+                        setCurrentConversationIndex(0);
+                        
+                        // Force re-render after state update
+                        setTimeout(() => {
+                            setConversations(prev => [...prev]); // Trigger re-render
+                            setCurrentConversationIndex(0); // Ensure correct conversation is selected
+                        }, 50);
+                        
+                        // Set context for continuation with safe fallbacks
+                        const safeNewsContext = {
+                            title: newsContext.title || newsContext.news?.title || 'News Article',
+                            content: newsContext.content || newsContext.news?.content || '',
+                            source: newsContext.source || newsContext.news?.source || 'Unknown Source',
+                            date: newsContext.date || newsContext.news?.published || 'Unknown Date',
+                            link: newsContext.link || newsContext.news?.link || '',
+                            news: newsContext.news || {
+                                title: newsContext.title || 'News Article',
+                                summary: newsContext.content || '',
+                                content: newsContext.content || '',
+                                source: newsContext.source || 'Unknown Source',
+                                published: newsContext.date || 'Unknown Date',
+                                link: newsContext.link || ''
+                            }
+                        };
+                        
+                        // Set context immediately
+                        setConversationContext(safeNewsContext);
+                        
+                        // Additional state updates to ensure proper rendering
+                        setTimeout(() => {
+                            setConversationContext(safeNewsContext); // Re-set context
+                            setLoading(false); // Ensure not stuck in loading state
+                            setError(null); // Clear any errors
+                        }, 100);
+                        
+                        // Clear localStorage to prevent re-loading
+                        localStorage.removeItem('chatbot_conversation');
+                        localStorage.removeItem('chatbot_news_context');
+                        
+                        console.log('🔄 Loading conversation from news analysis:');
+                        console.log('  - Messages:', conversationMessages.length);
+                        console.log('  - Messages structure:', conversationMessages);
+                        console.log('  - News context title:', safeNewsContext.title);
+                        console.log('  - Full news context:', safeNewsContext);
+                        
+                        // Show loading indicator briefly
+                        setLoading(true);
+                        setTimeout(() => setLoading(false), 500);
+                        
+                        // Force a re-render by triggering state updates
+                        setTimeout(() => {
+                            console.log('🔄 Forcing re-render after conversation load');
+                            setConversations(prev => [...prev]); // Trigger re-render
+                        }, 100);
+                    } catch (error) {
+                        console.error('Error loading saved conversation:', error);
+                        // Clear corrupted data
+                        localStorage.removeItem('chatbot_conversation');
+                        localStorage.removeItem('chatbot_news_context');
+                    }
+                }
+            }, []); // Run only once on component mount
+            
+            // Additional effect to handle URL timestamp and force conversation loading
+            useEffect(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const timestamp = urlParams.get('t');
+                
+                if (timestamp) {
+                    console.log('🔄 Detected redirect from news with timestamp:', timestamp);
+                    
+                    // Check for localStorage again with a slight delay
+                    setTimeout(() => {
+                        const savedConversation = localStorage.getItem('chatbot_conversation');
+                        const savedNewsContext = localStorage.getItem('chatbot_news_context');
+                        
+                        if (savedConversation && savedNewsContext) {
+                            console.log('🔄 Loading news conversation after redirect...');
+                            
+                            try {
+                                const conversationMessages = JSON.parse(savedConversation);
+                                const newsContext = JSON.parse(savedNewsContext);
+                                
+                                // Create new conversation immediately
+                                const newConversation = { 
+                                    messages: conversationMessages, 
+                                    createdAt: new Date().toISOString(),
+                                    fromNews: true,
+                                    loaded: timestamp // Mark when this was loaded
+                                };
+                                
+                                setConversations([newConversation]);
+                                setCurrentConversationIndex(0);
+                                
+                                // Set context
+                                const safeNewsContext = {
+                                    title: newsContext.title || newsContext.news?.title || 'News Article',
+                                    content: newsContext.content || newsContext.news?.content || '',
+                                    source: newsContext.source || newsContext.news?.source || 'Unknown Source',
+                                    date: newsContext.date || newsContext.news?.published || 'Unknown Date',
+                                    link: newsContext.link || newsContext.news?.link || '',
+                                    news: newsContext.news || newsContext
+                                };
+                                
+                                setConversationContext(safeNewsContext);
+                                
+                                // Clear localStorage
+                                localStorage.removeItem('chatbot_conversation');
+                                localStorage.removeItem('chatbot_news_context');
+                                
+                                console.log('✅ News conversation loaded successfully after redirect');
+                                
+                            } catch (error) {
+                                console.error('❌ Error loading news conversation after redirect:', error);
+                                localStorage.removeItem('chatbot_conversation');
+                                localStorage.removeItem('chatbot_news_context');
+                            }
+                        }
+                    }, 200); // Give more time for localStorage to be available
+                    
+                    // Clean up URL parameter
+                    const cleanUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                }
+            }, []); // Run only once when component mounts
+
+            const toggleTheme = () => {
+                setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+            };
+
+            const toggleSidebar = () => {
+                setShowSidebar((prev) => !prev);
+            };
+
+            const openProfile = () => {
+                window.location.href = '/auth/profile';
+            };
+
+            const addMessage = (message) => {
+                setConversations((prev) => {
+                    const updated = [...prev];
+                    updated[currentConversationIndex].messages.push(message);
+                    return updated;
+                });
+            };
+
+            const handleAnalyze = async (query, ticker) => {
+                // Check if this is a conversational response
+                const shortResponses = ['yes', 'no', 'y', 'n', 'yeah', 'nah', 'sure', 'ok', 'okay', 'absolutely', 'definitely', 'certainly', 'not really', 'maybe', 'possibly', 'probably', 'definitely not', 'of course'];
+                const isShortResponse = shortResponses.includes(query.toLowerCase().trim()) || query.length <= 10;
+                
+                if (!isShortResponse && (query.length < 3 || query.length > 200)) {
+                    setError('Query must be 3-200 characters long');
+                    return;
+                }
+                if (ticker && !/^(?:[A-Z]{1,5}|\d{4}\.KL)$/.test(ticker)) {
+                    setError('Invalid ticker format (e.g., AAPL or 1155.KL)');
+                    return;
+                }
+                setError(null);
+                setLoading(true);
+                setTyping(true);
+                
+                // Clear input fields immediately after submission
+                setQuery('');
+                // Don't clear ticker if it was auto-filled from company detection
+                if (!ticker) {
+                    setTicker('');
+                }
+                
+                // Start timing
+                const startTime = Date.now();
+                setAnalysisStartTime(startTime);
+                
+                addMessage({ role: 'user', content: { query, ticker } });
+                try {
+                    // Check if this is the first message in the current conversation
+                    // We need to check BEFORE adding the user message
+                    const currentConversation = conversations[currentConversationIndex];
+                    const isFirstMessage = currentConversation.messages.length === 0;
+                    
+                    const requestBody = {
+                        query,
+                        ticker: ticker || undefined,
+                        is_first_message: isFirstMessage
+                    };
+                    
+                    // Add conversation context if available and this is a short response
+                    if (isShortResponse && conversationContext) {
+                        requestBody.conversation_context = conversationContext;
+                    }
+                    
+                    const response = await fetch(`${API_BASE_URL}/analyze`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(requestBody),
+                    });
+                    const data = await response.json();
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    if (response.ok) {
+                        // Calculate response time
+                        const endTime = Date.now();
+                        const responseTime = ((endTime - startTime) / 1000).toFixed(1);
+                        
+                        // Add timing information to the response data
+                        const dataWithTiming = {
+                            ...data,
+                            response_time: responseTime,
+                            timing_info: {
+                                start_time: startTime,
+                                end_time: endTime,
+                                duration_ms: endTime - startTime,
+                                duration_seconds: responseTime
+                            }
+                        };
+                        
+                        
+                        
+                        addMessage({ role: 'assistant', content: dataWithTiming });
+                        
+                        // Clear analysis start time
+                        setAnalysisStartTime(null);
+                        
+                        // Update conversation context for next interaction
+                        if (data.conversation_context) {
+                            setConversationContext(data.conversation_context);
+                        }
+                        
+                        // Auto-fill ticker if detected from company analysis
+                        if (data.ticker && !ticker) {
+                            setTicker(data.ticker);
+                        }
+                    } else {
+                        setError(data.error || 'Failed to analyze query');
+                        // Input is already cleared, no need to clear again
+                    }
+                } catch (err) {
+                    setError('Error connecting to server');
+                    // Input is already cleared, no need to clear again
+                } finally {
+                    setLoading(false);
+                    setTyping(false);
+                    setAnalysisStartTime(null);
+                }
+            };
+
+            return (
+                <ErrorBoundary>
+                    <div class="flex w-full h-screen">
+                        {showSidebar && (
+                            <Sidebar
+                                conversations={conversations}
+                                setCurrentConversation={setCurrentConversationIndex}
+                                startNewConversation={() => {
+                                    setConversations((prev) => [...prev, { 
+                                        messages: [], 
+                                        createdAt: new Date().toISOString() 
+                                    }]);
+                                    setCurrentConversationIndex(conversations.length);
+                                    setQuery('');
+                                    setTicker('');
+                                    setError(null);
+                                    setConversationContext(null);
+                                    // Clear any loading states
+                                    setLoading(false);
+                                    setTyping(false);
+                                    // Clear conversation sources on the backend
+                                    fetch(`${API_BASE_URL}/conversation/clear-sources`, {
+                                        method: 'POST',
+                                        headers: { 
+                                            'Content-Type': 'application/json',
+                                            'X-Session-ID': localStorage.getItem('session_id') || 'anonymous'
+                                        },
+                                        credentials: 'include'
+                                    }).catch(error => console.warn('Failed to clear conversation sources:', error));
+                                }}
+                                deleteConversation={handleDeleteChat}
+                                currentConversationIndex={currentConversationIndex}
+                                theme={theme}
+                                toggleSidebar={toggleSidebar}
+                                toggleTheme={toggleTheme}
+                                openProfile={openProfile}
+                            />
+                        )}
+                        <div class={`flex-1 flex flex-col h-screen ${showSidebar ? 'ml-64' : ''} transition-all duration-300`}>
+                            {!showSidebar && (
+                                <button
+                                    onClick={toggleSidebar}
+                                    className={`fixed top-4 left-4 z-40 p-2 rounded-lg theme-transition ${
+                                        theme === 'dark' 
+                                            ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+                                    </svg>
+                                </button>
+                            )}
+                            <div className={`flex flex-col h-full ${!showSidebar ? 'ml-12' : ''} transition-all duration-300`}>
+                                <UniversalNavbar 
+                                    currentPage="chatbot"
+                                    theme={theme}
+                                    currentUser={currentUser}
+                                    showUserMenu={showUserMenu}
+                                    setShowUserMenu={setShowUserMenu}
+                                    handleLogout={handleLogout}
+                                />
+                                
+                                {/* Main content area - takes remaining space */}
+                                <div className="flex-1 flex flex-col min-h-0">
+                                    {authLoading ? (
+                                        <div className="flex-1 p-8 flex items-center justify-center">
+                                            <div className="text-center">
+                                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                                                <h3 className="text-lg font-semibold mb-2">Loading...</h3>
+                                                <p className="text-gray-600">Please wait</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex-1 p-8 overflow-y-auto w-full mx-auto pr-0 chat-container">
+                                            <ChatMessages
+                                                messages={conversations[currentConversationIndex].messages}
+                                                loading={loading}
+                                                typing={typing}
+                                                analysisStartTime={analysisStartTime}
+                                                updateMessage={(messageIndex, updatedContent) => {
+                                                    setConversations((prev) => {
+                                                        const updated = [...prev];
+                                                        updated[currentConversationIndex].messages[messageIndex] = {
+                                                            ...updated[currentConversationIndex].messages[messageIndex],
+                                                            content: { ...updatedContent, edited: true },
+                                                        };
+                                                        return updated;
+                                                    });
+                                                }}
+                                                theme={theme}
+                                                recommendedQuestions={recommendedQuestions}
+                                                handleRecommendedQuestion={handleRecommendedQuestion}
+                                                onFeedback={handleFeedback}
+                                                setQuery={setQuery}
+                                                setTicker={setTicker}
+                                                handleAnalyze={handleAnalyze}
+                                                authLoading={authLoading}
+                                            />
+                                            {error && (
+                                                <div className={`mt-4 px-4 py-2 rounded ${theme === 'dark' ? 'bg-red-900 border border-red-700 text-red-200' : 'bg-red-100 border border-red-400 text-red-700'}`}>
+                                                    {error}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Fixed bottom input area */}
+                                <div className={`border-t theme-transition ${
+                                    theme === 'dark' 
+                                        ? 'border-gray-700 bg-[#141414]' 
+                                        : 'border-gray-200 bg-white'
+                                }`}>
+                                    <ChatInput
+                                        query={query}
+                                        ticker={ticker}
+                                        setQuery={setQuery}
+                                        setTicker={setTicker}
+                                        onAnalyze={handleAnalyze}
+                                        loading={loading}
+                                        setError={setError}
+                                        theme={theme}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Feedback Modal */}
+                    <FeedbackModal
+                        isOpen={feedbackModalOpen}
+                        onClose={() => setFeedbackModalOpen(false)}
+                        analysisData={selectedAnalysisData}
+                        theme={theme}
+                    />
+                    
+                    {/* Delete Chat Modal */}
+                    <DeleteChatModal
+                        isOpen={deleteModalOpen}
+                        onClose={() => setDeleteModalOpen(false)}
+                        onConfirm={confirmDeleteChat}
+                        theme={theme}
+                    />
+                    
+                    {/* Toast Notification */}
+                    {showToast && (
+                        <div className="fixed bottom-4 right-4 z-50">
+                            <div className={`px-4 py-2 rounded-lg shadow-lg ${
+                                theme === 'dark' 
+                                    ? 'bg-gray-800 text-gray-200 border border-gray-600' 
+                                    : 'bg-white text-gray-800 border border-gray-200'
+                            }`}>
+                                <div className="flex items-center">
+                                    <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    {toastMessage}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </ErrorBoundary>
+            );
+        }
+
+        function ChatMessages({ messages, loading, typing, analysisStartTime, updateMessage, theme, recommendedQuestions, handleRecommendedQuestion, onFeedback, setQuery, setTicker, handleAnalyze, authLoading }) {
+            const bottomRef = useRef(null);
+            const [showFeedbackPopup, setShowFeedbackPopup] = useState(false);
+
+            useEffect(() => {
+                bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages, loading, typing]);
+
+            // Feedback handler
+            const handleFeedback = (type) => {
+                setShowFeedbackPopup(true);
+                setTimeout(() => setShowFeedbackPopup(false), 1500);
+            };
+
+            // Welcome message if no chat yet or if this is a new conversation
+            const showWelcome = messages.length === 0;
+
+            // Show loading if still checking authentication
+            if (authLoading) {
+                return (
+                    <div className="flex items-center justify-center h-full">
+                        <div className="animate-pulse text-center">
+                            <div className="w-8 h-8 bg-blue-500 rounded-full mx-auto mb-2"></div>
+                            <p>Checking authentication...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex flex-col space-y-4 h-full">
+                    {showWelcome ? (
+                        <div className={`flex-1 flex flex-col items-center justify-center p-4`}>
+                            <div className={`text-center w-full max-w-4xl mx-auto p-8 rounded-2xl theme-transition ${
+                                theme === 'dark' 
+                                    ? 'liquid-glass-dark text-gray-100' 
+                                    : 'liquid-glass text-gray-900'
+                            }`}>
+                                <div className="flex items-center justify-center mb-4">
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-3 ${theme === 'dark' ? 'bg-blue-600' : 'bg-blue-500'}`}>
+                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold">Hi! I'm your Stock Analysis Assistant</h2>
+                                        <p className="text-sm text-gray-400">Feel free to ask me anything about finance and investment</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="mb-6">
+                                    <h3 className="text-lg font-semibold mb-3"></h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {recommendedQuestions.map((question, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => handleRecommendedQuestion(question)}
+                                                disabled={loading}
+                                                className={`text-left p-3 rounded-xl border theme-transition ${
+                                                    theme === 'dark' 
+                                                        ? 'liquid-glass-dark border-gray-600 hover:bg-gray-600 text-gray-200' 
+                                                        : 'liquid-glass border-gray-200 hover:bg-gray-100 text-gray-700'
+                                                } ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm">{question.text}</span>
+                                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                                    </svg>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => window.location.href = 'watchlist.html'}
+                                            disabled={loading}
+                                            className={`p-3 rounded-xl border theme-transition ${
+                                                theme === 'dark' 
+                                                    ? 'liquid-glass-dark border-gray-600 hover:bg-gray-600 text-gray-200' 
+                                                    : 'liquid-glass border-gray-200 hover:bg-gray-100 text-gray-700'
+                                            } ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
+                                        >
+                                            <div className="flex flex-col items-center">
+                                                <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                                </svg>
+                                                <span className="text-xs">My Watchlist</span>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={() => handleRecommendedQuestion({text: "Feedback", query: "system feedback and improvement suggestions", ticker: ""})}
+                                            disabled={loading}
+                                            className={`p-3 rounded-xl border theme-transition ${
+                                                theme === 'dark' 
+                                                    ? 'liquid-glass-dark border-gray-600 hover:bg-gray-600 text-gray-200' 
+                                                    : 'liquid-glass border-gray-200 hover:bg-gray-100 text-gray-700'
+                                            } ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
+                                        >
+                                            <div className="flex flex-col items-center">
+                                                <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                </svg>
+                                                <span className="text-xs">Feedback</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="text-xs text-gray-400 text-center">
+                                    Not intended as financial advice
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="max-w-4xl mx-auto px-1">
+                            {messages.map((message, idx) => (
+                                <div key={idx}>
+                                                                <Message
+                                key={idx}
+                                message={message}
+                                index={idx}
+                                updateMessage={updateMessage}
+                                theme={theme}
+                                onFeedback={onFeedback}
+                                setQuery={setQuery}
+                                setTicker={setTicker}
+                                handleAnalyze={handleAnalyze}
+                            />
+                                    
+                                </div>
+                            ))}
+                                                {/* Loading bubble with proper animation */}
+                    {loading && (
+                        <div className="flex justify-start mb-4">
+                            <div className={`p-4 rounded-lg chat-message ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-900'}`}>
+                                <div className="flex items-center space-x-2">
+                                    <div className="flex space-x-1">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                    </div>
+                                    <span className="text-sm ml-2">Analyzing...</span>
+                                    <LiveTimer startTime={analysisStartTime} theme={theme} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                            {showFeedbackPopup && (
+                                <div className="fixed inset-0 flex items-end justify-center z-50 pointer-events-none">
+                                    <div className="mb-24 px-6 py-3 rounded-lg shadow-lg bg-green-500 text-white text-lg font-normal pointer-events-auto animate-bounce">
+                                        Thank you for your feedback!
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={bottomRef} />
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Function to parse Markdown bold (**text**) and convert to HTML
+        function parseMarkdownBold(text) {
+            if (!text || typeof text !== 'string') return text;
+
+            const parts = [];
+            let remainingText = text;
+            let match;
+
+            const boldRegex = /\*\*(.*?)\*\*/g;
+
+            while ((match = boldRegex.exec(remainingText)) !== null) {
+                const beforeText = remainingText.substring(0, match.index);
+                const boldText = match[1];
+                const fullMatch = match[0]; // **text**
+
+                if (beforeText) parts.push(beforeText);
+                
+                parts.push(
+                    React.createElement('strong', {
+                        key: `bold-${parts.length}`
+                    }, boldText)
+                );
+
+                remainingText = remainingText.substring(match.index + fullMatch.length);
+            }
+
+            if (remainingText) parts.push(remainingText);
+            return parts.length > 0 ? parts : text;
+        }
+
+        // Comprehensive markdown parser for all elements
+        function parseMarkdown(text) {
+            if (!text || typeof text !== 'string') return text;
+
+            let processedText = text;
+
+            // Parse headers
+            processedText = processedText.replace(/^(#{1,6})\s+(.+)$/gm, (match, hashes, content) => {
+                const level = hashes.length;
+                const id = content.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                return `<h${level} id="${id}" class="font-bold text-lg mb-2 mt-4">${content}</h${level}>`;
+            });
+
+            // Parse bold text
+            processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>');
+
+            // Parse italic text
+            processedText = processedText.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
+
+            // Parse code blocks
+            processedText = processedText.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded overflow-x-auto"><code>$1</code></pre>');
+
+            // Parse inline code
+            processedText = processedText.replace(/`([^`]+)`/g, '<code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm">$1</code>');
+
+            // Parse bullet lists
+            processedText = processedText.replace(/^-\s+(.+)$/gm, '<li class="ml-4">$1</li>');
+            processedText = processedText.replace(/(<li class="ml-4">.*<\/li>)/s, '<ul class="list-disc pl-4 space-y-1">$1</ul>');
+
+            // Parse numbered lists - preserve original numbering and handle multiple lists
+            processedText = processedText.replace(/^(\d+)\.\s+(.+)$/gm, '<li class="ml-4" value="$1">$2</li>');
+            
+            // Handle multiple numbered lists by grouping consecutive li elements
+            processedText = processedText.replace(/(<li class="ml-4" value="\d+">.*?<\/li>(?:\s*<li class="ml-4" value="\d+">.*?<\/li>)*)/gs, (match) => {
+                // Extract the first value to determine the starting number
+                const firstValueMatch = match.match(/value="(\d+)"/);
+                const startValue = firstValueMatch ? parseInt(firstValueMatch[1]) : 1;
+                
+                // Remove the value attributes from individual li elements since we're using start on ol
+                const cleanedMatch = match.replace(/value="\d+"/g, '');
+                
+                return `<ol class="list-decimal pl-4 space-y-1" start="${startValue}">${cleanedMatch}</ol>`;
+            });
+
+            // Parse line breaks
+            processedText = processedText.replace(/\n/g, '<br>');
+
+            return processedText;
+        }
+
+        // Function to parse citation numbers ([1], [2], [3], etc.) and convert to HTML
+        function parseCitations(text, onCitationClick, theme) {
+            if (!text || typeof text !== 'string') return text;
+
+            const parts = [];
+            let remainingText = text;
+            let lastIndex = 0;
+
+            // Regex to match citation numbers [1], [2], [3], etc.
+            const citationRegex = /\[(\d+)\]/g;
+            let match;
+
+            while ((match = citationRegex.exec(text)) !== null) {
+                const beforeText = text.substring(lastIndex, match.index);
+                const citationNumber = match[1];
+                const fullMatch = match[0]; // [1], [2], etc.
+
+                if (beforeText) parts.push(beforeText);
+                
+                parts.push(
+                    React.createElement('span', {
+                        key: `citation-${citationNumber}-${parts.length}`,
+                        className: 'citation-link',
+                        onClick: () => onCitationClick && onCitationClick(parseInt(citationNumber)),
+                        title: `Click to view source ${citationNumber}`,
+                        'data-citation': citationNumber
+                    }, citationNumber)
+                );
+
+                lastIndex = match.index + fullMatch.length;
+            }
+
+            // Add any remaining text
+            if (lastIndex < text.length) {
+                parts.push(text.substring(lastIndex));
+            }
+
+            return parts.length > 0 ? parts : text;
+        }
+
+        // Function to extract citation numbers from text
+        function extractCitationNumbers(text) {
+            if (!text || typeof text !== 'string') return [];
+            
+            console.log('Extracting citations from text:', text.substring(0, 300) + '...');
+            
+            // Primary pattern: [1], [2], [3] etc.
+            const citationPattern = /\[(\d+)\]/g;
+            const citations = new Set();
+            let match;
+            
+            // Extract all [number] citations
+            while ((match = citationPattern.exec(text)) !== null) {
+                const num = parseInt(match[1]);
+                if (num > 0 && num <= 50) { // Reasonable citation range, increased limit
+                    citations.add(num);
+                    console.log(`Found citation: [${num}] at position ${match.index}`);
+                }
+            }
+            
+            // Reset regex lastIndex
+            citationPattern.lastIndex = 0;
+            
+            const citationArray = Array.from(citations).sort((a, b) => a - b);
+            console.log('Final extracted citations:', citationArray);
+            
+            return citationArray;
+        }
+
+        // Function to deduplicate sources based on title and URL
+        function deduplicateSources(sources) {
+            if (!sources || !Array.isArray(sources)) return sources;
+            
+            const seen = new Set();
+            const uniqueSources = [];
+            
+            for (const source of sources) {
+                // Create a unique key based on title and URL
+                const key = `${source.title || ''}-${source.url || ''}-${source.type || ''}`;
+                
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueSources.push(source);
+                }
+            }
+            
+            return uniqueSources;
+        }
+
+        // Function to filter sources to only show those that were cited
+        // Updated to trust backend source management and persistent numbering
+        function filterUsedSources(sources, responseText) {
+            if (!sources || !responseText || typeof responseText !== 'string') return sources;
+            
+            console.log('Backend-provided sources:', sources);
+            
+            const citedNumbers = extractCitationNumbers(responseText);
+            console.log('Cited numbers found:', citedNumbers);
+            
+            // If there are no citations in the text, don't show sources
+            if (citedNumbers.length === 0) {
+                console.log('No citations found, returning empty array');
+                return [];
+            }
+            
+            // Filter to show only cited sources and renumber them sequentially
+            const usedSources = sources.filter(source => {
+                const citationNumber = source.citation_number || source.citationNumber;
+                console.log(`Checking source ${citationNumber} against cited numbers:`, citedNumbers);
+                return citedNumbers.includes(citationNumber);
+            });
+            
+            console.log('Filtered used sources (before renumbering):', usedSources);
+            
+            // Renumber sources sequentially starting from 1
+            return usedSources.map((source, index) => ({
+                ...source,
+                // Store original citation number for reference
+                original_citation_number: source.citation_number || source.citationNumber,
+                // Assign new sequential citation number starting from 1
+                citation_number: index + 1
+            }));
+        }
+
+        // Function to update citation numbers in text to match renumbered sources
+        function updateCitationNumbers(text, usedSources) {
+            // Return early if no text, no sources, or text is not a string
+            if (!text || !usedSources || typeof text !== 'string') {
+                return text;
+            }
+            
+            // Create a mapping from original citation numbers to new sequential numbers
+            const citationMap = {};
+            usedSources.forEach(source => {
+                if (source.original_citation_number) {
+                    citationMap[source.original_citation_number] = source.citation_number;
+                }
+            });
+            
+            console.log('Citation mapping:', citationMap);
+            
+            // Replace all citation numbers in the text
+            let updatedText = text;
+            try {
+                Object.keys(citationMap).forEach(originalNum => {
+                    const newNum = citationMap[originalNum];
+                    // Replace [originalNum] with [newNum]
+                    const regex = new RegExp(`\\[${originalNum}\\]`, 'g');
+                    updatedText = updatedText.replace(regex, `[${newNum}]`);
+                });
+            } catch (error) {
+                console.error('Error updating citation numbers:', error);
+                console.error('Text:', text, 'Type:', typeof text);
+                console.error('Used sources:', usedSources);
+                // Return original text if replacement fails
+                return text;
+            }
+            
+            return updatedText;
+        }
+
+        // Function to process message content and update all citation numbers
+        // Function to process message content and update all citation numbers
+function processMessageContent(messageContent, sources) {
+    if (!messageContent || !sources) return { processedContent: messageContent, usedSources: [] };
+    
+    // Determine response type and prioritize the right text fields
+    const isFirstMessage = messageContent.is_first_message;
+    const isFollowupResponse = messageContent.is_followup_response;
+    
+    let responseText = '';
+    
+    if (isFirstMessage) {
+        // First message: Citations are in structured fields
+        responseText = [
+            messageContent.risk_explanation || '',
+            messageContent.summary || '',
+            messageContent.actionable_insights || '',
+            messageContent.formatted_risk_explanation || '',
+            messageContent.formatted_summary || '',
+            messageContent.formatted_actionable_insights || ''
+        ].join(' ');
+        
+        console.log('Processing FIRST MESSAGE - structured fields');
+    } else if (isFollowupResponse) {
+        // Follow-up message: Citations are in response/formatted_response fields
+        responseText = [
+            messageContent.response || '',
+            messageContent.formatted_response || ''
+        ].join(' ');
+        
+        console.log('Processing FOLLOW-UP MESSAGE - response fields');
+    } else {
+        // Fallback: Try all fields (existing logic)
+        responseText = [
+            messageContent.risk_explanation || '',
+            messageContent.summary || '',
+            messageContent.actionable_insights || '',
+            messageContent.response || '',
+            messageContent.formatted_response || '',
+            messageContent.formatted_risk_explanation || '',
+            messageContent.formatted_summary || '',
+            messageContent.formatted_actionable_insights || ''
+        ].join(' ');
+        
+        console.log('Processing UNKNOWN TYPE - all fields');
+    }
+    
+    // Debug: Log the combined response text
+    console.log('=== CITATION DEBUG ===');
+    console.log('Response type:', { isFirstMessage, isFollowupResponse });
+    console.log('Combined response text for citation extraction:', responseText.substring(0, 300) + '...');
+    console.log('Available sources:', sources);
+    console.log('Source citation numbers:', sources.map(s => s.citation_number || s.citationNumber));
+    
+    // Filter and renumber sources
+    const usedSources = filterUsedSources(sources, responseText);
+    
+    console.log('Used sources after filtering:', usedSources);
+    console.log('Citation renumbering - Original sources:', usedSources.map(s => ({ original: s.original_citation_number, new: s.citation_number })));
+    
+    // Update citation numbers in all text fields (keep existing logic)
+    const processedContent = { ...messageContent };
+    
+    // Helper function to safely update citation numbers
+    function safelyUpdateCitations(field, fieldName) {
+        if (field && typeof field === 'string') {
+            const updated = updateCitationNumbers(field, usedSources);
+            if (updated !== field) {
+                console.log(`Updated citations in ${fieldName}:`, { before: field.substring(0, 200), after: updated.substring(0, 200) });
+            }
+            return updated;
+        } else if (field) {
+            console.warn(`Field ${fieldName} is not a string, skipping citation update. Type:`, typeof field, 'Value:', field);
+        }
+        return field;
+    }
+    
+    processedContent.risk_explanation = safelyUpdateCitations(processedContent.risk_explanation, 'risk_explanation');
+    processedContent.summary = safelyUpdateCitations(processedContent.summary, 'summary');
+    processedContent.actionable_insights = safelyUpdateCitations(processedContent.actionable_insights, 'actionable_insights');
+    processedContent.response = safelyUpdateCitations(processedContent.response, 'response');
+    processedContent.formatted_response = safelyUpdateCitations(processedContent.formatted_response, 'formatted_response');
+    processedContent.formatted_risk_explanation = safelyUpdateCitations(processedContent.formatted_risk_explanation, 'formatted_risk_explanation');
+    processedContent.formatted_summary = safelyUpdateCitations(processedContent.formatted_summary, 'formatted_summary');
+    processedContent.formatted_actionable_insights = safelyUpdateCitations(processedContent.formatted_actionable_insights, 'formatted_actionable_insights');
+    
+    return { processedContent, usedSources };
+}
+
+        // Combined function to parse both markdown and citations
+        function parseFormattedText(text, onCitationClick, theme) {
+            if (!text || typeof text !== 'string') return text;
+            
+            // First apply full markdown formatting
+            const htmlContent = parseMarkdown(text);
+            
+            // Then convert citations to clickable elements
+            const processedHtml = convertCitationsToClickable(htmlContent, onCitationClick, theme);
+            
+            // Return as React element with dangerouslySetInnerHTML
+            return React.createElement('div', {
+                dangerouslySetInnerHTML: { __html: processedHtml }
+            });
+        }
+        
+        // Function to convert citation text to clickable HTML elements
+        function convertCitationsToClickable(htmlContent, onCitationClick, theme) {
+            // Replace [1], [2], etc. with clickable spans
+            return htmlContent.replace(/\[(\d+)\]/g, (match, citationNumber) => {
+                return `<span class="citation-link" 
+                         onclick="window.handleCitationClickGlobal && window.handleCitationClickGlobal(${citationNumber})" 
+                         title="Click to view source ${citationNumber}" 
+                         data-citation="${citationNumber}">${citationNumber}</span>`;
+            });
+        }
+
+        // Function to format actionable insights as a numbered list
+        function formatActionableInsights(insights, onCitationClick, theme) {
+            if (!insights || typeof insights !== 'string') return 'N/A';
+
+            // Split insights by newline, assuming they are separated by \n
+            const insightList = insights.split('\n').filter((item) => item.trim());
+
+            // If no valid insights, return N/A
+            if (insightList.length === 0) return 'N/A';
+
+            // Render as an ordered list
+            return (
+                <ol className="list-decimal pl-5 space-y-1">
+                    {insightList.map((insight, idx) => (
+                        <li key={idx}>{parseFormattedText(insight.replace(/^\d+\.\s*/, '').trim(), onCitationClick, theme)}</li>
+                    ))}
+                </ol>
+            );
+        }
+
+        function Message({ message, index, updateMessage, theme, onFeedback, setQuery, setTicker, handleAnalyze }) {
+            const [isEditing, setIsEditing] = useState(false);
+            const [editedQuery, setEditedQuery] = useState(
+                (typeof message.content === 'string' ? message.content : message.content.query) || ''
+            );
+            const [editedTicker, setEditedTicker] = useState(message.content.ticker || '');
+            const [editedNews, setEditedNews] = useState(message.content.news || {
+                title: '',
+                content: '',
+                summary: '',
+                link: '',
+                category: '',
+                published_time: '',
+                industry: '',
+                market_data: { ticker: '', stock_price: '' },
+                macro_factors: { gdp_growth: '', interest_rate: '' },
+            });
+
+            // Handle citation click to highlight source - scoped to current message
+            const handleCitationClick = (citationIndex) => {
+                // Create unique ID for this message's sources
+                const messageSourceId = `source-${index}-${citationIndex}`;
+                const el = document.getElementById(messageSourceId);
+                
+                if (el) {
+                    // Remove any existing highlights
+                    document.querySelectorAll('.highlight-source').forEach(el => el.classList.remove('highlight-source'));
+                    document.querySelectorAll('.citation-highlight').forEach(el => el.classList.remove('citation-highlight'));
+                    
+                    // Add highlight to the target source
+                    el.classList.add('highlight-source');
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => el.classList.remove('highlight-source'), 3000);
+                    
+                    // Highlight all citations with the same number in the text
+                    const citationElements = document.querySelectorAll(`[data-citation="${citationIndex}"]`);
+                    citationElements.forEach(citationEl => {
+                        citationEl.classList.add('citation-highlight');
+                        setTimeout(() => citationEl.classList.remove('citation-highlight'), 3000);
+                    });
+                    
+                    console.log(`Citation ${citationIndex} clicked - highlighted source and ${citationElements.length} citation(s) in text`);
+                } else {
+                    // Debug: Log if element not found
+                    console.log(`Citation ${citationIndex} clicked, but element with ID '${messageSourceId}' not found`);
+                    console.log('Available source IDs:', Array.from(document.querySelectorAll('[id^="source-"]')).map(el => el.id));
+                }
+            };
+            
+            // Set up global citation click handler for this message
+            window.handleCitationClickGlobal = handleCitationClick;
+
+            const handleNewsChange = (e) => {
+                const { name, value } = e.target;
+                if (name.includes('market_data') || name.includes('macro_factors')) {
+                    const [parent, key] = name.split('.');
+                    setEditedNews((prev) => ({
+                        ...prev,
+                        [parent]: { ...prev[parent], [key]: value },
+                    }));
+                } else {
+                    setEditedNews((prev) => ({ ...prev, [name]: value }));
+                }
+            };
+
+            const handleSave = () => {
+                if (typeof message.content === 'string' || message.content.query) {
+                    updateMessage(index, { query: editedQuery, ticker: editedTicker });
+                } else {
+                    updateMessage(index, { news: editedNews });
+                }
+                setIsEditing(false);
+            };
+
+            return (
+                <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
+                    <div className={`p-4 theme-transition chat-message ${
+                        message.role === 'user' 
+                            ? 'chat-bubble-user text-white' 
+                            : theme === 'dark' 
+                                ? 'text-gray-100' 
+                                : 'text-gray-900'
+                    }`}>
+                        {message.role === 'user' && isEditing ? (
+                            <div className="space-y-2">
+                                {(typeof message.content === 'string' || message.content.query) ? (
+                                    <>
+                                        <input
+                                            type="text"
+                                            value={editedQuery}
+                                            onChange={(e) => setEditedQuery(e.target.value)}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Edit query"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={editedTicker}
+                                            onChange={(e) => setEditedTicker(e.target.value)}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Edit ticker (optional)"
+                                        />
+                                    </>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <input
+                                            type="text"
+                                            name="title"
+                                            value={editedNews.title}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="News title"
+                                        />
+                                        <input
+                                            type="url"
+                                            name="link"
+                                            value={editedNews.link}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="News URL"
+                                        />
+                                        <textarea
+                                            name="summary"
+                                            value={editedNews.summary}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Summary"
+                                        />
+                                        <textarea
+                                            name="content"
+                                            value={editedNews.content}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Content"
+                                        />
+                                        <input
+                                            type="text"
+                                            name="category"
+                                            value={editedNews.category}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Category (e.g., Finance)"
+                                        />
+                                        <input
+                                            type="text"
+                                            name="published_time"
+                                            value={editedNews.published_time}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Published time (e.g., 2025-05-13)"
+                                        />
+                                        <input
+                                            type="text"
+                                            name="industry"
+                                            value={editedNews.industry}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Industry (e.g., Technology)"
+                                        />
+                                        <input
+                                            type="text"
+                                            name="market_data.ticker"
+                                            value={editedNews.market_data.ticker}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Ticker (e.g., AAPL)"
+                                        />
+                                        <input
+                                            type="text"
+                                            name="market_data.stock_price"
+                                            value={editedNews.market_data.stock_price}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Stock price (e.g., 150.00)"
+                                        />
+                                        <input
+                                            type="text"
+                                            name="macro_factors.gdp_growth"
+                                            value={editedNews.macro_factors.gdp_growth}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="GDP growth (e.g., 2.5%)"
+                                        />
+                                        <input
+                                            type="text"
+                                            name="macro_factors.interest_rate"
+                                            value={editedNews.macro_factors.interest_rate}
+                                            onChange={handleNewsChange}
+                                            className={`w-full p-2 rounded ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-gray-200 text-gray-900 border-gray-300'}`}
+                                            placeholder="Interest rate (e.g., 3.0%)"
+                                        />
+                                    </div>
+                                )}
+                                <div className="flex space-x-2 mt-2">
+                                    <button
+                                        onClick={handleSave}
+                                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                    >
+                                        Save
+                                    </button>
+                                    <button
+                                        onClick={() => setIsEditing(false)}
+                                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                                                {message.role === 'user' ? (
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            {message.content && typeof message.content === 'string' ? (
+                                                // Handle messages transferred from news window (string content)
+                                                <p className="text-sm">{message.content}</p>
+                                            ) : message.content && message.content.query ? (
+                                                // Handle regular query messages
+                                                <>
+                                                    <p className="text-sm">{message.content.query}</p>
+                                                    {message.content.ticker && (
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Ticker: {message.content.ticker}</p>
+                                                    )}
+                                                    {message.content.edited && <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}> (Edited)</span>}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p>{parseMarkdownBold('**News Title:**')} {message.content.news?.title || 'N/A'}</p>
+                                                    <p>{parseMarkdownBold('**Summary:**')} {message.content.news?.summary || 'N/A'}</p>
+                                                    {message.content.news?.link && (
+                                                        <p>{parseMarkdownBold('**Link:**')} <a href={message.content.news.link} target="_blank" rel="noopener noreferrer" className="underline">{message.content.news.link}</a></p>
+                                                    )}
+                                                    <p>{parseMarkdownBold('**Industry:**')} {message.content.news?.industry || 'N/A'}</p>
+                                                    <p>{parseMarkdownBold('**Ticker:**')} {message.content.news?.market_data?.ticker || 'N/A'}</p>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-lg font-semibold">
+                                                {message.content.is_first_message ? 'Analysis Results' : 'Response'}
+                                            </h3>
+                                            {message.content.is_conversational_response && (
+                                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full dark:bg-blue-900 dark:text-blue-200">
+                                                    Conversational Response
+                                                </span>
+                                            )}
+                                            {/* {!message.content.is_first_message && (
+                                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full dark:bg-green-900 dark:text-green-200">
+                                                    Follow-up Response
+                                                </span>
+                                            )} */}
+                                        </div>
+                                        
+                                        {/* Handle different response formats */}
+                                        {message.content.is_first_message ? (() => {
+                                            // Process message content to update citation numbers
+                                            const { processedContent, usedSources } = processMessageContent(message.content, message.content.sources);
+                                            
+                                            return (
+                                                <>
+                                                    {/* Source Information Hint */}
+                                                    {(() => {
+                                                        const sources = message.content.sources || [];
+                                                        const hasGoogleSources = sources.some(source => source.type === 'google_search');
+                                                        const hasOtherSources = sources.some(source => source.type !== 'google_search');
+                                                        const hasNoSources = sources.length === 0;
+                                                        
+                                                        if (hasNoSources) {
+                                                            return (
+                                                                <div className={`mb-3 p-2 rounded-lg text-xs ${
+                                                                    theme === 'dark' 
+                                                                        ? 'bg-yellow-900/20 border border-yellow-700/30 text-yellow-200' 
+                                                                        : 'bg-yellow-50 border border-yellow-200 text-yellow-800'
+                                                                }`}>
+                                                                    <div className="flex items-center">
+                                                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                        </svg>
+                                                                        This response is based on general knowledge from the language model, as no external sources were found.
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        } else if (hasGoogleSources && !hasOtherSources) {
+                                                            return (
+                                                                <div className={`mb-3 p-2 rounded-lg text-xs ${
+                                                                    theme === 'dark' 
+                                                                        ? 'bg-blue-900/20 border border-blue-700/30 text-blue-200' 
+                                                                        : 'bg-blue-50 border border-blue-200 text-blue-800'
+                                                                }`}>
+                                                                    <div className="flex items-center">
+                                                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                                        </svg>
+                                                                        This analysis is based on Google Search results, as no matching data was found in our knowledge base.
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        }
+                                                        return null; // No hint for regular database sources
+                                                    })()}
+                                                    <p className="text-sm">{parseFormattedText('**Risk Score:**', handleCitationClick, theme)} {parseFormattedText(processedContent.risk_score || 'N/A', handleCitationClick, theme)}</p>
+                                                    
+                                                    {/* Risk Explanation with markdown formatting */}
+                                                    <div className="text-sm">
+                                                        <p className="font-semibold mb-2">Risk Explanation:</p>
+                                                        <div className="markdown-content">
+                                                            {parseFormattedText(processedContent.risk_explanation || 'N/A', handleCitationClick, theme)}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Summary with markdown formatting */}
+                                                    <div className="text-sm">
+                                                        <p className="font-semibold mb-2">Summary:</p>
+                                                        <div className="markdown-content">
+                                                            {parseFormattedText(processedContent.summary || 'N/A', handleCitationClick, theme)}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Actionable Insights with markdown formatting */}
+                                                    <div className="text-sm">
+                                                        <p className="font-semibold mb-2">Actionable Insights:</p>
+                                                        <div className="markdown-content">
+                                                            {parseFormattedText(processedContent.actionable_insights || 'N/A', handleCitationClick, theme)}
+                                                        </div>
+                                                    </div>
+                                                
+                                                {/* Feedback and Download buttons for first messages */}
+                                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-sm text-gray-600 dark:text-gray-400">Rate this analysis:</span>
+                                                        <div className="flex space-x-2">
+                                                            <button
+                                                                onClick={() => downloadAnalysisResults(message.content)}
+                                                                className={`px-3 py-1 rounded-lg text-xs transition-colors flex items-center gap-1 ${
+                                                                    theme === 'dark' 
+                                                                        ? 'bg-green-700 text-green-200 hover:bg-green-600' 
+                                                                        : 'bg-green-200 text-green-700 hover:bg-green-300'
+                                                                }`}
+                                                                title="Download analysis results as JSON"
+                                                            >
+                                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                                Download JSON
+                                                            </button>
+                                                            <button
+                                                                onClick={() => onFeedback && onFeedback(message.content)}
+                                                                className={`px-3 py-1 rounded-lg text-xs transition-colors ${
+                                                                    theme === 'dark' 
+                                                                        ? 'bg-blue-700 text-blue-200 hover:bg-blue-600' 
+                                                                        : 'bg-blue-200 text-blue-700 hover:bg-blue-300'
+                                                                }`}
+                                                            >
+                                                                Rate Analysis
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                </>
+                                            );
+                                        })() : (() => {
+                                            // Follow-up message: Process content and show formatted LLM response with markdown
+                                            const processResult = processMessageContent(message.content, message.content.sources);
+                                            const processedContent = processResult?.processedContent || message.content;
+                                            
+                                            return (
+                                                <div className="text-sm">
+                                                    <div className="markdown-content">
+                                                        {parseFormattedText(processedContent.response || 'No response content available', handleCitationClick, theme)}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                        
+                                        {/* Feedback button for follow-up messages */}
+                                        {!message.content.is_first_message && (
+                                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Was this response helpful?</span>
+                                                    <div className="flex space-x-2">
+                                                        <button
+                                                            onClick={() => onFeedback && onFeedback(message.content)}
+                                                            className={`px-3 py-1 rounded-lg text-xs transition-colors ${
+                                                                theme === 'dark' 
+                                                                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                            }`}
+                                                        >
+                                                            👍
+                                                        </button>
+                                                        <button
+                                                            onClick={() => onFeedback && onFeedback(message.content)}
+                                                            className={`px-3 py-1 rounded-lg text-xs transition-colors ${
+                                                                theme === 'dark' 
+                                                                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                            }`}
+                                                        >
+                                                            👎
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Response Time Information */}
+                                        {message.content.response_time && (
+                                            <div className={`mt-3 p-2 rounded-lg text-xs ${
+                                                theme === 'dark' 
+                                                    ? 'bg-blue-900 border border-blue-700' 
+                                                    : 'bg-blue-50 border border-blue-200'
+                                            }`}>
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span className={`font-semibold ${
+                                                        theme === 'dark' ? 'text-blue-200' : 'text-blue-700'
+                                                    }`}>
+                                                        Response Time: {message.content.response_time}s
+                                                    </span>
+                                                    {message.content.timing_info && (
+                                                        <span className={`${
+                                                            theme === 'dark' ? 'text-blue-300' : 'text-blue-600'
+                                                        }`}>
+                                                            ({message.content.timing_info.duration_ms}ms)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Token Usage Information - Only show for first messages */}
+                                        {message.content.is_first_message && message.content.token_usage && (
+                                            <div className={`mt-3 p-2 rounded-lg text-xs ${
+                                                theme === 'dark' 
+                                                    ? 'bg-gray-700 border border-gray-600' 
+                                                    : 'bg-gray-100 border border-gray-200'
+                                            }`}>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="font-medium">Token Usage & Cost</span>
+                                                    <span className={`px-2 py-1 rounded text-xs ${
+                                                        theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
+                                                    }`}>
+                                                        {message.content.token_usage.model_name}
+                                                    </span>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                                    <div>
+                                                        <span className="text-gray-500">Prompt Tokens:</span>
+                                                        <span className="ml-1 font-mono">{message.content.token_usage.prompt_tokens.toLocaleString()}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-gray-500">Completion Tokens:</span>
+                                                        <span className="ml-1 font-mono">{message.content.token_usage.completion_tokens.toLocaleString()}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-gray-500">Total Tokens:</span>
+                                                        <span className="ml-1 font-mono">{message.content.token_usage.total_tokens.toLocaleString()}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-gray-500">Total Cost:</span>
+                                                        <span className="ml-1 font-mono text-green-600 dark:text-green-400">
+                                                            ${message.content.token_usage.total_cost.toFixed(6)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Sources with numbered citations - Show for both first messages and follow-up responses */}
+                                        {message.content.sources && message.content.sources.length > 0 && (() => {
+                                            // Debug: Log the response text to see what we're working with
+                                            console.log('Message content:', message.content);
+                                            console.log('Response text:', message.content.response);
+                                            console.log('Risk explanation:', message.content.risk_explanation);
+                                            console.log('Summary:', message.content.summary);
+                                            console.log('Actionable insights:', message.content.actionable_insights);
+                                            
+                                            // Process message content to get used sources
+                                            const processResult = processMessageContent(message.content, message.content.sources);
+                                            const usedSources = processResult?.usedSources || [];
+                                            
+                                            console.log('Used sources after processing:', usedSources);
+                                            console.log('Sources count:', message.content.sources.length);
+                                            
+                                            // If no sources are cited, show a message
+                                            if (usedSources.length === 0) {
+                                                return (
+                                                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                                                            The analysis is based on general knowledge.
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                            
+                                            return usedSources.length > 0 && (
+                                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                                    <h4 className="text-sm font-medium mb-2">Sources:</h4>
+                                                    <div className="space-y-1" data-message-index={index}>
+                                                        {usedSources.map((source, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            id={`source-${index}-${source.citation_number}`}
+                                                            className="text-xs text-gray-600 dark:text-gray-400 flex items-start source-item cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded transition-colors"
+                                                            onClick={() => handleCitationClick(source.citation_number)}
+                                                            title="Click to highlight this source in the text"
+                                                        >
+                                                            <span className="font-medium mr-2 flex-shrink-0">{source.citation_number}.</span> 
+                                                            <div className="flex-1">
+                                                                {source.type === 'youtube' ? (
+                                                                    <a href={source.url} target="_blank" rel="noopener noreferrer" className={`hover:underline ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`}>
+                                                                        {source.title}
+                                                                    </a>
+                                                                ) : source.type === 'google_search' ? (
+                                                                    <div>
+                                                                        <a href={source.url} target="_blank" rel="noopener noreferrer" className={`hover:underline ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`}>
+                                                                            {source.title}
+                                                                        </a>
+                                                                        {source.snippet && (
+                                                                            <div className="text-xs mt-1 text-gray-500">{source.snippet}</div>
+                                                                        )}
+                                                                        {source.displayLink && (
+                                                                            <div className="text-xs text-gray-400">{source.displayLink}</div>
+                                                                        )}
+                                                                    </div>
+                                                                ) : source.type === 'document' ? (
+                                                                    <span className="text-gray-500">Knowledge Base: {source.file}</span>
+                                                                ) : source.type === 'news_article' ? (
+                                                                    <div>
+                                                                        <div className="font-medium">{source.title}</div>
+                                                                        <div className="text-xs text-gray-500 mt-1">
+                                                                            {source.source} • {source.published}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : source.type === 'general_knowledge' ? (
+                                                                    <div>
+                                                                        <div className="font-medium">{source.title}</div>
+                                                                        <div className="text-xs text-gray-500 mt-1">
+                                                                            {source.snippet}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : source.type === 'web_search' ? (
+                                                                    <div>
+                                                                        <div className="font-medium">{source.title}</div>
+                                                                        <div className="text-xs text-gray-500 mt-1">
+                                                                            {source.snippet}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span>{source.file || source.title || 'Unknown source'}</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            );
+                                        })()}
+                                        
+                                        {/* Financial Data - Only show for first messages */}
+                                        {message.content.is_first_message && message.content.financial_data && (() => {
+                                            const financialData = message.content.financial_data;
+                                            const allNA = !financialData.company_name || financialData.company_name === 'N/A' ||
+                                                         !financialData.ticker || financialData.ticker === 'N/A' ||
+                                                         !financialData.current_price || financialData.current_price === 'N/A' ||
+                                                         !financialData.market_cap || financialData.market_cap === 'N/A';
+                                            
+                                            if (allNA) {
+                                                return (
+                                                    <details className={`mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                        <summary className="text-sm font-medium mb-2 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200">
+                                                            Financial Data (No data available)
+                                                        </summary>
+                                                        <div className="space-y-1">
+                                                            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                                                <span className="font-medium mr-2 flex-shrink-0">•</span> 
+                                                                <div className="flex-1">
+                                                                    <span className="font-medium">Company:</span> {financialData.company_name || 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                                                <span className="font-medium mr-2 flex-shrink-0">•</span> 
+                                                                <div className="flex-1">
+                                                                    <span className="font-medium">Ticker:</span> {financialData.ticker || 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                                                <span className="font-medium mr-2 flex-shrink-0">•</span> 
+                                                                <div className="flex-1">
+                                                                    <span className="font-medium">Current Price:</span> {financialData.current_price || 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                                                <span className="font-medium mr-2 flex-shrink-0">•</span> 
+                                                                <div className="flex-1">
+                                                                    <span className="font-medium">Market Cap:</span> {financialData.market_cap || 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </details>
+                                                );
+                                            } else {
+                                                return (
+                                                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                                        <h4 className="text-sm font-medium mb-2">Financial Data</h4>
+                                                        <div className="space-y-1">
+                                                            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                                                <span className="font-medium mr-2 flex-shrink-0">•</span> 
+                                                                <div className="flex-1">
+                                                                    <span className="font-medium">Company:</span> {financialData.company_name || 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                                                <span className="font-medium mr-2 flex-shrink-0">•</span> 
+                                                                <div className="flex-1">
+                                                                    <span className="font-medium">Ticker:</span> {financialData.ticker || 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                                                <span className="font-medium mr-2 flex-shrink-0">•</span> 
+                                                                <div className="flex-1">
+                                                                    <span className="font-medium">Current Price:</span> {financialData.current_price || 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                                                <span className="font-medium mr-2 flex-shrink-0">•</span> 
+                                                                <div className="flex-1">
+                                                                    <span className="font-medium">Market Cap:</span> {financialData.market_cap || 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                        })()}
+
+                                        {/* Follow-up Questions - Show for all messages with questions */}
+                                        {message.content.related_questions && message.content.related_questions.length > 0 && (
+                                            <div className="mt-4">
+                                                <h4 className={`text-sm font-medium mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    💡 Continue the conversation:
+                                                </h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {message.content.related_questions.map((question, index) => {
+                                                        // Enhanced emoji selection for professional question categories
+                                                        const getEmoji = (q) => {
+                                                            const qLower = q.toLowerCase();
+                                                            
+                                                            // Risk & Strategy Focus
+                                                            if (qLower.includes('risk') || qLower.includes('mitigation') || qLower.includes('volatility') || qLower.includes('strategy')) return '🛡️';
+                                                            
+                                                            // Growth & Opportunity Focus  
+                                                            if (qLower.includes('growth') || qLower.includes('opportunity') || qLower.includes('potential') || qLower.includes('competitive advantage')) return '📈';
+                                                            
+                                                            // Market & Context Focus
+                                                            if (qLower.includes('market') || qLower.includes('trend') || qLower.includes('sector') || qLower.includes('macroeconomic')) return '📊';
+                                                            
+                                                            // Financial Analysis
+                                                            if (qLower.includes('financial') || qLower.includes('performance') || qLower.includes('earnings') || qLower.includes('revenue') || qLower.includes('metrics')) return '💰';
+                                                            
+                                                            // Competition & Industry
+                                                            if (qLower.includes('competition') || qLower.includes('competitive') || qLower.includes('peers') || qLower.includes('industry')) return '🏆';
+                                                            
+                                                            // Regulatory & Policy
+                                                            if (qLower.includes('policy') || qLower.includes('regulation') || qLower.includes('government') || qLower.includes('regulatory')) return '📋';
+                                                            
+                                                            // Timing & Investment
+                                                            if (qLower.includes('timing') || qLower.includes('when') || qLower.includes('investment') || qLower.includes('buy') || qLower.includes('sell')) return '⏰';
+                                                            
+                                                            // Analysis & Research
+                                                            if (qLower.includes('analyze') || qLower.includes('explore') || qLower.includes('research') || qLower.includes('investigate')) return '🔍';
+                                                            
+                                                            // Default for mentor-like questions
+                                                            return '💡';
+                                                        };
+                                                        
+                                                        return (
+                                                            <button
+                                                                key={index}
+                                                                onClick={() => {
+                                                                    setQuery(question);
+                                                                    setTicker(message.content.ticker || '');
+                                                                    handleAnalyze(question, message.content.ticker || '');
+                                                                }}
+                                                                className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105 hover:shadow-md ${
+                                                                    theme === 'dark' 
+                                                                        ? 'bg-gray-700 border border-gray-600 hover:bg-gray-600 text-gray-200 hover:border-gray-500' 
+                                                                        : 'bg-gray-100 border border-gray-300 hover:bg-gray-200 text-gray-700 hover:border-gray-400'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-center space-x-2">
+                                                                    <span className="text-sm">{getEmoji(question)}</span>
+                                                                    <span className="max-w-xs truncate">{question}</span>
+                                                                    <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                                                    </svg>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        function ChatInput({ query, ticker, setQuery, setTicker, onAnalyze, loading, setError, theme }) {
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setError(null);
+                if (!query.trim()) {
+                    setError('Please enter a query');
+                    return;
+                }
+                onAnalyze(query, ticker);
+            };
+
+            return (
+                <div className="p-4">
+                    <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                className={`flex-[3] p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 theme-transition text-xs ${
+                                    theme === 'dark' 
+                                        ? 'liquid-glass-dark text-white border-gray-600' 
+                                        : 'bg-white text-gray-900 border border-gray-300 shadow-sm'
+                                }`}
+                                placeholder="Ask anything"
+                            />
+                            <input
+                                type="text"
+                                value={ticker}
+                                onChange={(e) => setTicker(e.target.value)}
+                                className={`flex-[1] p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 theme-transition text-xs ${
+                                    theme === 'dark' 
+                                        ? 'liquid-glass-dark text-white border-gray-600' 
+                                        : 'bg-white text-gray-900 border border-gray-300 shadow-sm'
+                                }`}
+                                placeholder="Ticker (5196.KL)"
+                            />
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={`p-3 rounded-full theme-transition ${
+                                    loading 
+                                        ? 'bg-gray-400 cursor-not-allowed' 
+                                        : theme === 'dark'
+                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                                }`}
+                            >
+                                {loading ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                ) : (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

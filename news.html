@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- News last updated: 2025-09-24 08:49:04 MYT with 10 articles -->
+    <!-- News last updated: 2025-09-22 08:47:11 MYT with 9 articles -->
+    <!-- News last updated: 2025-09-20 09:02:16 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-20 08:55:29 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-20 08:51:38 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-20 08:46:14 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-20 08:41:32 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-20 08:37:14 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-20 08:29:16 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-20 08:21:54 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-20 04:38:56 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-20 04:37:33 MYT with 5 articles -->
+    <!-- News last updated: 2025-09-20 01:24:16 MYT with 2 articles -->
+    <!-- News last updated: 2025-09-18 00:04:50 MYT with 10 articles -->
+    <!-- News last updated: 2025-09-18 00:04:13 MYT with 3 articles -->
+    <!-- News last updated: 2025-09-18 00:04:06 MYT with 1 articles -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malaysia News - Updated 2025-09-24 08:49:04 MYT - Stock Analysis Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <style>
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .liquid-glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .theme-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .news-card {
+            transition: all 0.3s ease;
+        }
+        
+        .news-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .floating-chatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            height: 500px;
+            z-index: 1000;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .floating-chatbot.expanded {
+            width: 500px;
+            height: 600px;
+        }
+
+        /* Chat bubble styles */
+        .chat-bubble-user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px 20px 4px 20px;
+            color: white;
+        }
+        
+        .chat-bubble-ai {
+            background: #f3f4f6;
+            border-radius: 20px 20px 20px 4px;
+            color: #000000;
+        }
+        
+        .chat-bubble-ai-dark {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 20px 20px 20px 4px;
+            color: white;
+        }
+
+        /* Scrollbar hiding */
+        .chat-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .chat-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="app"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Universal Navigation Bar Component
+        const UniversalNavbar = ({ 
+            currentPage = 'chatbot', // 'chatbot', 'news', 'watchlist'
+            theme = 'light',
+            currentUser = null,
+            showUserMenu = false,
+            setShowUserMenu = () => {},
+            handleLogout = () => {},
+            title = null // Optional custom title, defaults to page-specific titles
+        }) => {
+            const getPageTitle = () => {
+                if (title) return title;
+                switch (currentPage) {
+                    case 'chatbot': return 'Stock Analysis Chatbot';
+                    case 'news': return 'Malaysia News';
+                    case 'watchlist': return 'My Watchlist';
+                    default: return 'Stock Analysis Platform';
+                }
+            };
+
+            const getNavigationLinks = () => {
+                const links = [
+                    { 
+                        key: 'chatbot', 
+                        href: '/', 
+                        label: 'Chatbot', 
+                        color: 'blue',
+                        active: currentPage === 'chatbot'
+                    },
+                    { 
+                        key: 'news', 
+                        href: '/news.html', 
+                        label: 'News', 
+                        color: 'green',
+                        active: currentPage === 'news'
+                    },
+                    { 
+                        key: 'watchlist', 
+                        href: '/watchlist.html', 
+                        label: 'Watchlist', 
+                        color: 'purple',
+                        active: currentPage === 'watchlist'
+                    }
+                ];
+                
+                // Filter out current page from navigation links
+                return links.filter(link => !link.active);
+            };
+
+            const getButtonClasses = (color, isActive = false) => {
+                const baseClasses = "px-3 py-1.5 rounded-lg font-medium transition-colors text-xs";
+                
+                if (isActive) {
+                    return `${baseClasses} ${
+                        theme === 'dark' 
+                            ? 'bg-gray-700 text-white' 
+                            : 'bg-gray-200 text-gray-900'
+                    }`;
+                }
+
+                const colorClasses = {
+                    blue: theme === 'dark' 
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : 'bg-blue-500 text-white hover:bg-blue-600',
+                    green: theme === 'dark' 
+                        ? 'bg-green-600 text-white hover:bg-green-700' 
+                        : 'bg-green-500 text-white hover:bg-green-600',
+                    purple: theme === 'dark' 
+                        ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                        : 'bg-purple-500 text-white hover:bg-purple-600'
+                };
+
+                return `${baseClasses} ${colorClasses[color]}`;
+            };
+
+            return React.createElement('div', {
+                className: `p-2 border-b theme-transition z-30 ${
+                    theme === 'dark' 
+                        ? 'liquid-glass-dark border-gray-600' 
+                        : 'liquid-glass border-gray-200'
+                }`
+            }, 
+                React.createElement('div', {
+                    className: 'max-w-7xl mx-auto'
+                },
+                    React.createElement('div', {
+                        className: 'flex items-center justify-between'
+                    },
+                        // Left side - Title with optional back button for watchlist
+                        React.createElement('div', {
+                            className: 'flex items-center space-x-4'
+                        },
+                            // Back button for watchlist page
+                            currentPage === 'watchlist' && React.createElement('button', {
+                                onClick: () => window.location.href = '/',
+                                className: 'p-1.5 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors'
+                            },
+                                React.createElement('svg', {
+                                    className: 'w-4 h-4',
+                                    fill: 'none',
+                                    stroke: 'currentColor',
+                                    viewBox: '0 0 24 24'
+                                },
+                                    React.createElement('path', {
+                                        strokeLinecap: 'round',
+                                        strokeLinejoin: 'round',
+                                        strokeWidth: '2',
+                                        d: 'M10 19l-7-7m0 0l7-7m-7 7h18'
+                                    })
+                                )
+                            ),
+                            // Page title
+                            React.createElement('h1', {
+                                className: `text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`
+                            }, getPageTitle())
+                        ),
+
+                        // Right side - Navigation Links and User Profile
+                        React.createElement('div', {
+                            className: 'flex items-center space-x-3'
+                        },
+                            // Navigation Links - moved to right side near profile
+                            React.createElement('div', {
+                                className: 'flex items-center space-x-2'
+                            },
+                                ...getNavigationLinks().map(link => 
+                                    React.createElement('a', {
+                                        key: link.key,
+                                        href: link.href,
+                                        className: getButtonClasses(link.color)
+                                    }, link.label)
+                                )
+                            ),
+
+                            // User Profile
+                            currentUser && React.createElement('div', {
+                                className: 'relative'
+                            },
+                                React.createElement('button', {
+                                    onClick: () => setShowUserMenu(!showUserMenu),
+                                    className: `flex items-center space-x-2 p-1.5 rounded-lg transition-colors ${
+                                        theme === 'dark' 
+                                            ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                                            : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                                    }`
+                                },
+                                    React.createElement('div', {
+                                        className: 'w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium text-xs'
+                                    }, currentUser.first_name ? currentUser.first_name[0].toUpperCase() : currentUser.email[0].toUpperCase()),
+                                    React.createElement('span', {
+                                        className: 'text-sm font-medium'
+                                    }, currentUser.first_name || 'User'),
+                                    React.createElement('svg', {
+                                        className: 'w-3 h-3',
+                                        fill: 'none',
+                                        stroke: 'currentColor',
+                                        viewBox: '0 0 24 24'
+                                    },
+                                        React.createElement('path', {
+                                            strokeLinecap: 'round',
+                                            strokeLinejoin: 'round',
+                                            strokeWidth: '2',
+                                            d: 'M19 9l-7 7-7-7'
+                                        })
+                                    )
+                                ),
+
+                            // User dropdown menu
+                            showUserMenu && React.createElement('div', {
+                                className: `absolute right-0 mt-2 w-48 ${
+                                    theme === 'dark' 
+                                        ? 'bg-gray-800 border-gray-700' 
+                                        : 'bg-white border-gray-200'
+                                } rounded-lg shadow-lg border z-50`
+                            },
+                                React.createElement('div', {
+                                    className: 'py-1'
+                                },
+                                    // User info
+                                    React.createElement('div', {
+                                        className: `px-4 py-2 border-b ${
+                                            theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                                        }`
+                                    },
+                                        React.createElement('p', {
+                                            className: `text-sm font-medium ${
+                                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                            }`
+                                        }, currentUser.full_name || currentUser.email),
+                                        React.createElement('p', {
+                                            className: `text-xs ${
+                                                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                                            }`
+                                        }, currentUser.email)
+                                    ),
+                                    // Profile link
+                                    React.createElement('a', {
+                                        href: '/auth/profile',
+                                        className: `block px-4 py-2 text-sm transition-colors ${
+                                            theme === 'dark' 
+                                                ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                        }`
+                                    }, 'Profile'),
+                                    // Logout button
+                                    React.createElement('button', {
+                                        onClick: handleLogout,
+                                        className: `block w-full text-left px-4 py-2 text-sm transition-colors ${
+                                            theme === 'dark' 
+                                                ? 'text-red-400 hover:bg-gray-700 hover:text-red-300' 
+                                                : 'text-red-600 hover:bg-gray-100'
+                                        }`
+                                    }, 'Logout')
+                                )
+                            )
+                        )
+                    )
+                )
+                        )            );
+        };
+
+        // Live Timer Component for News Window
+        const LiveTimer = ({ startTime, theme }) => {
+            const [elapsedTime, setElapsedTime] = useState(0);
+
+            useEffect(() => {
+                if (!startTime) return;
+                
+                const interval = setInterval(() => {
+                    const now = Date.now();
+                    const elapsed = ((now - startTime) / 1000).toFixed(1);
+                    setElapsedTime(elapsed);
+                }, 100);
+
+                return () => clearInterval(interval);
+            }, [startTime]);
+
+            if (!startTime) return null;
+
+            return (
+                <span className={`text-xs ${theme === 'dark' ? 'text-blue-300' : 'text-blue-600'} font-mono ml-1`}>
+                    {elapsedTime}s
+                </span>
+            );
+        };
+
+        // Parse text with markdown-like formatting
+        const parseFormattedText = (text, onCitationClick, theme) => {
+            if (!text) return text;
+            
+            const parts = [];
+            let lastIndex = 0;
+            
+            // Bold text pattern
+            const boldPattern = /\*\*(.*?)\*\*/g;
+            let match;
+            
+            while ((match = boldPattern.exec(text)) !== null) {
+                if (match.index > lastIndex) {
+                    parts.push(text.slice(lastIndex, match.index));
+                }
+                parts.push(React.createElement('strong', { key: match.index }, match[1]));
+                lastIndex = match.index + match[0].length;
+            }
+            
+            if (lastIndex < text.length) {
+                parts.push(text.slice(lastIndex));
+            }
+            
+            return parts.length > 1 ? parts : text;
+        };
+
+        // Generate basic fallback analysis when main analysis fails
+        const generateBasicAnalysis = (article) => {
+            const title = article.title.toLowerCase();
+            const content = (article.content || article.description || '').toLowerCase();
+            
+            // Basic keyword-based analysis
+            let riskScore = 3.0; // Default neutral
+            let riskLevel = 'Medium';
+            let insights = [];
+            
+            // High risk indicators
+            if (title.includes('investigation') || title.includes('lawsuit') || title.includes('fraud') || 
+                title.includes('decline') || title.includes('loss') || title.includes('crash')) {
+                riskScore = 4.5;
+                riskLevel = 'High';
+                insights.push('Negative news may impact investor sentiment');
+            }
+            // Low risk / positive indicators  
+            else if (title.includes('growth') || title.includes('profit') || title.includes('expansion') || 
+                     title.includes('investment') || title.includes('partnership')) {
+                riskScore = 2.0;
+                riskLevel = 'Low';
+                insights.push('Positive developments may support market confidence');
+            }
+            // Regulatory/political indicators
+            else if (title.includes('government') || title.includes('policy') || title.includes('regulation')) {
+                riskScore = 3.5;
+                riskLevel = 'Medium-High';
+                insights.push('Regulatory changes may create market uncertainty');
+            }
+            
+            // Add sector-specific insights
+            if (title.includes('bank') || title.includes('financial')) {
+                insights.push('Financial sector movements often affect broader market indices');
+            } else if (title.includes('tech') || title.includes('digital')) {
+                insights.push('Technology sector developments can have significant growth implications');
+            } else if (title.includes('oil') || title.includes('energy')) {
+                insights.push('Energy sector news impacts both domestic and export economies');
+            }
+            
+            return {
+                risk_score: riskScore.toFixed(1),
+                risk_explanation: `Based on basic analysis of the article title and content, this news appears to carry ${riskLevel.toLowerCase()} risk for Malaysian markets. This assessment is preliminary and should be verified with detailed analysis.`,
+                summary: `This article discusses: ${article.title}. Published by ${article.source_id || 'Unknown Source'} on ${article.formatted_date || 'Unknown Date'}. The content suggests potential market implications that require further investigation.`,
+                actionable_insights: insights.length > 0 ? insights.join('. ') + '.' : 'Monitor related stocks and market sectors for price movements. Consider consulting detailed financial analysis before making investment decisions.'
+            };
+        };
+
+        // Floating Chatbot Component
+        const FloatingChatbot = ({ isVisible, onClose, newsArticle, theme, onOpenFullChat }) => {
+            const [messages, setMessages] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [typing, setTyping] = useState(false);
+            const [expanded, setExpanded] = useState(false);
+            const [analysisStartTime, setAnalysisStartTime] = useState(null);
+            const messagesEndRef = useRef(null);
+
+            useEffect(() => {
+                if (isVisible && newsArticle) {
+                    // Initialize chat with news analysis
+                    analyzeNews();
+                }
+            }, [isVisible, newsArticle]);
+
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages, typing]);
+
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            };
+
+            const analyzeNews = async () => {
+                if (!newsArticle) return;
+
+                setLoading(true);
+                setTyping(true);
+                
+                // Start timing
+                const startTime = Date.now();
+                setAnalysisStartTime(startTime);
+
+                const userMessage = {
+                    role: 'user',
+                    content: `Please analyze this news article: "${newsArticle.title}"`,
+                    query: `Analyze Malaysia news: ${newsArticle.title.substring(0, 100)}`,
+                    ticker: ''
+                };
+
+                setMessages([userMessage]);
+
+                try {
+                    // Create a shorter, focused query that fits within the 200 character limit
+                    const shortQuery = `Analyze Malaysia news: ${newsArticle.title.substring(0, 100)}`;
+                    
+                    // Add timeout to prevent hanging
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                    
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include', // Include cookies for authentication
+                        signal: controller.signal,
+                        body: JSON.stringify({
+                            query: shortQuery,
+                            ticker: '',
+                            is_first_message: true,
+                            context: `News Article Analysis:
+Title: ${newsArticle.title}
+Source: ${newsArticle.source_id || 'Unknown'}
+Date: ${newsArticle.formatted_date || 'Unknown'}
+Content: ${(newsArticle.content || newsArticle.description || '').substring(0, 500)}...`,
+                            session_id: `news_${newsArticle._id}_${Date.now()}`
+                        })
+                    });
+                    
+                    clearTimeout(timeoutId);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Calculate response time
+                        const endTime = Date.now();
+                        const responseTime = ((endTime - startTime) / 1000).toFixed(1);
+                        
+                        // Add timing information to the response data
+                        const dataWithTiming = {
+                            ...data,
+                            response_time: responseTime,
+                            timing_info: {
+                                start_time: startTime,
+                                end_time: endTime,
+                                duration_ms: endTime - startTime,
+                                duration_seconds: responseTime
+                            }
+                        };
+                        
+                        const aiMessage = {
+                            role: 'assistant',
+                            content: dataWithTiming
+                        };
+                        setMessages(prev => [...prev, aiMessage]);
+                        setAnalysisStartTime(null);
+                    } else {
+                        const errorData = await response.json().catch(() => ({}));
+                        console.error('Analysis failed:', response.status, errorData);
+                        throw new Error(errorData.error || `Server error: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error('Error analyzing news:', error);
+                    
+                    let errorText = 'Sorry, I encountered an error while analyzing this news article.';
+                    let fallbackAnalysis = null;
+                    
+                    if (error.name === 'AbortError') {
+                        // Timeout error - try the quick analysis endpoint
+                        errorText = 'The detailed analysis is taking too long. Trying quick analysis...';
+                        try {
+                            const quickResponse = await fetch('/news/analyze/quick', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({
+                                    title: newsArticle.title,
+                                    content: newsArticle.content || newsArticle.description,
+                                    source: newsArticle.source_id,
+                                    date: newsArticle.formatted_date
+                                })
+                            });
+                            
+                            if (quickResponse.ok) {
+                                fallbackAnalysis = await quickResponse.json();
+                            } else {
+                                fallbackAnalysis = generateBasicAnalysis(newsArticle);
+                            }
+                        } catch (quickError) {
+                            console.error('Quick analysis also failed:', quickError);
+                            fallbackAnalysis = generateBasicAnalysis(newsArticle);
+                        }
+                    } else if (error.message.includes('401') || error.message.includes('authentication')) {
+                        errorText = 'Authentication required. Please log in and try again.';
+                    } else if (error.message.includes('500')) {
+                        errorText = 'Server error occurred. The analysis service might be temporarily unavailable.';
+                    } else {
+                        errorText = `Analysis failed: ${error.message}. Please try again later.`;
+                    }
+                    
+                    const errorMessage = {
+                        role: 'assistant',
+                        content: fallbackAnalysis || {
+                            text: errorText
+                        }
+                    };
+                    setMessages(prev => [...prev, errorMessage]);
+                } finally {
+                    setLoading(false);
+                    setTyping(false);
+                    setAnalysisStartTime(null);
+                }
+            };
+
+            const handleOpenFullChat = () => {
+                // Store conversation state in localStorage with debug info
+                console.log('💾 Storing conversation for transfer to main chatbot:');
+                console.log('  - Messages count:', messages.length);
+                console.log('  - Messages structure:', messages);
+                
+                // Ensure messages have proper structure for main chatbot
+                const processedMessages = messages.map(msg => {
+                    if (msg.role === 'assistant' && msg.content) {
+                        // Ensure assistant messages have the expected structure
+                        return {
+                            role: msg.role,
+                            content: {
+                                text: msg.content.text || msg.content.risk_explanation || msg.content.summary || 'Analysis completed',
+                                risk_score: msg.content.risk_score || null,
+                                risk_explanation: msg.content.risk_explanation || null,
+                                summary: msg.content.summary || null,
+                                actionable_insights: msg.content.actionable_insights || null,
+                                response_time: msg.content.response_time || null,
+                                timing_info: msg.content.timing_info || null,
+                                related_questions: msg.content.related_questions || null,
+                                sources: msg.content.sources || [],
+                                is_first_message: true, // Mark as first message for proper display
+                                is_conversational_response: false // Mark as structured response
+                            }
+                        };
+                    } else if (msg.role === 'user') {
+                        // Ensure user messages have the expected structure
+                        return {
+                            role: msg.role,
+                            content: {
+                                query: msg.content.query || msg.content || 'News analysis request',
+                                ticker: msg.content.ticker || ''
+                            }
+                        };
+                    }
+                    return msg;
+                });
+                
+                localStorage.setItem('chatbot_conversation', JSON.stringify(processedMessages));
+                
+                // Ensure news context has the proper structure expected by main chatbot
+                const newsContext = {
+                    title: newsArticle?.title || 'News Article',
+                    content: newsArticle?.content || newsArticle?.description || '',
+                    source: newsArticle?.source_id || 'Unknown Source',
+                    date: newsArticle?.formatted_date || 'Unknown Date',
+                    link: newsArticle?.link || '',
+                    _id: newsArticle?._id || '',
+                    // Add the news structure that the main chatbot expects
+                    news: {
+                        title: newsArticle?.title || 'News Article',
+                        summary: newsArticle?.description || '',
+                        content: newsArticle?.content || '',
+                        source: newsArticle?.source_id || 'Unknown Source',
+                        published: newsArticle?.formatted_date || 'Unknown Date',
+                        link: newsArticle?.link || ''
+                    }
+                };
+                
+                localStorage.setItem('chatbot_news_context', JSON.stringify(newsContext));
+                
+                console.log('💾 Stored news context:');
+                console.log('  - Title:', newsContext.title);
+                console.log('  - Full context:', newsContext);
+                console.log('  - Processed messages:', processedMessages);
+                
+                onOpenFullChat();
+            };
+
+            if (!isVisible) return null;
+
+            return (
+                <div className={`floating-chatbot ${expanded ? 'expanded' : ''} ${
+                    theme === 'dark' ? 'liquid-glass-dark' : 'liquid-glass'
+                } theme-transition`}>
+                    {/* Header */}
+                    <div className={`p-3 border-b ${
+                        theme === 'dark' ? 'border-gray-600' : 'border-gray-200'
+                    } flex items-center justify-between`}>
+                        <h3 className={`font-semibold text-sm ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>News Analysis</h3>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setExpanded(!expanded)}
+                                className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
+                                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                                }`}
+                                title={expanded ? 'Minimize' : 'Expand'}
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                        d={expanded ? "M19 14l-7-7m0 0l-7 7m7-7v18" : "M7 10l5 5 5-5"}
+                                    />
+                                </svg>
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
+                                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                                }`}
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Messages */}
+                    <div className="flex-1 overflow-y-auto p-3 chat-container" style={{ height: expanded ? '480px' : '380px' }}>
+                        {messages.map((message, index) => (
+                            <div key={index} className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                                <div className={`inline-block max-w-[80%] p-3 text-sm ${
+                                    message.role === 'user' 
+                                        ? 'chat-bubble-user' 
+                                        : theme === 'dark' 
+                                            ? 'chat-bubble-ai-dark'
+                                            : 'chat-bubble-ai'
+                                }`}>
+                                    {message.role === 'user' ? (
+                                        <div>{message.content}</div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {message.content.risk_score && (
+                                                <div>
+                                                    <strong>Risk Score:</strong> {message.content.risk_score}
+                                                </div>
+                                            )}
+                                            {message.content.risk_explanation && (
+                                                <div>
+                                                    <strong>Risk Explanation:</strong> {parseFormattedText(message.content.risk_explanation, null, theme)}
+                                                </div>
+                                            )}
+                                            {message.content.summary && (
+                                                <div>
+                                                    <strong>Summary:</strong> {parseFormattedText(message.content.summary, null, theme)}
+                                                </div>
+                                            )}
+                                            {message.content.actionable_insights && (
+                                                <div>
+                                                    <strong>Actionable Insights:</strong> {parseFormattedText(message.content.actionable_insights, null, theme)}
+                                                </div>
+                                            )}
+                                            {message.content.text && (
+                                                <div>{parseFormattedText(message.content.text, null, theme)}</div>
+                                            )}
+                                            {message.content.response_time && (
+                                                <div className={`mt-2 pt-2 border-t text-xs ${
+                                                    theme === 'dark' ? 'border-gray-600 text-blue-300' : 'border-gray-200 text-blue-600'
+                                                }`}>
+                                                    <div className="flex items-center gap-1">
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <span>Response: {message.content.response_time}s</span>
+                                                        {message.content.timing_info && (
+                                                            <span className="opacity-70">({message.content.timing_info.duration_ms}ms)</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
+                                            {/* Follow-up Questions for News Window */}
+                                            {message.content.related_questions && message.content.related_questions.length > 0 && (
+                                                <div className="mt-3 pt-2 border-t border-gray-600">
+                                                    <div className="text-xs text-white opacity-80 mb-2">💡 Continue exploring:</div>
+                                                    <div className="flex flex-col gap-1">
+                                                        {message.content.related_questions.slice(0, 2).map((question, index) => {
+                                                            // Simplified emoji selection for news window
+                                                            const getEmoji = (q) => {
+                                                                const qLower = q.toLowerCase();
+                                                                if (qLower.includes('risk') || qLower.includes('mitigation')) return '🛡️';
+                                                                if (qLower.includes('growth') || qLower.includes('opportunity')) return '📈';
+                                                                if (qLower.includes('market') || qLower.includes('trend')) return '📊';
+                                                                return '💡';
+                                                            };
+                                                            
+                                                            return (
+                                                                <button
+                                                                    key={index}
+                                                                    onClick={() => {
+                                                                        // For news window, we'll note this for potential main chatbot transfer
+                                                                        console.log('📝 Follow-up question clicked in news window:', question);
+                                                                        // Could implement re-analysis or store for main chatbot
+                                                                    }}
+                                                                    className="text-left px-2 py-1 text-xs bg-white bg-opacity-10 hover:bg-opacity-20 rounded text-white transition-all duration-200 hover:scale-[1.02]"
+                                                                >
+                                                                    <span className="mr-1">{getEmoji(question)}</span>
+                                                                    {question.length > 50 ? question.substring(0, 50) + '...' : question}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                        
+                        {typing && (
+                            <div className="text-left mb-4">
+                                <div className={`inline-block p-3 text-sm ${
+                                    theme === 'dark' ? 'chat-bubble-ai-dark' : 'chat-bubble-ai'
+                                }`}>
+                                    <div className="flex items-center gap-1">
+                                        <div className={`w-2 h-2 rounded-full animate-pulse ${
+                                            theme === 'dark' ? 'bg-white' : 'bg-black'
+                                        }`}></div>
+                                        <div className={`w-2 h-2 rounded-full animate-pulse ${
+                                            theme === 'dark' ? 'bg-white' : 'bg-black'
+                                        }`} style={{ animationDelay: '0.2s' }}></div>
+                                        <div className={`w-2 h-2 rounded-full animate-pulse ${
+                                            theme === 'dark' ? 'bg-white' : 'bg-black'
+                                        }`} style={{ animationDelay: '0.4s' }}></div>
+                                        <span className={`text-xs ml-2 ${
+                                            theme === 'dark' ? 'text-white opacity-80' : 'text-black opacity-80'
+                                        }`}>Analyzing...</span>
+                                        <LiveTimer startTime={analysisStartTime} theme={theme} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Footer */}
+                    <div className={`p-3 border-t ${
+                        theme === 'dark' ? 'border-gray-600' : 'border-gray-200'
+                    }`}>
+                        <button
+                            onClick={handleOpenFullChat}
+                            className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                theme === 'dark' 
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                            }`}
+                        >
+                            Open Full Chat
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // News Item Component
+        const NewsItem = ({ article, theme, onClick }) => {
+            const truncateText = (text, maxLength = 150) => {
+                if (!text) return '';
+                return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            };
+
+            const handleViewFullArticle = (e) => {
+                e.stopPropagation(); // Prevent triggering the main onClick
+                if (article.link) {
+                    window.open(article.link, '_blank', 'noopener,noreferrer');
+                } else {
+                    console.warn('No link available for this article');
+                }
+            };
+
+            return (
+                <div 
+                    className={`news-card p-4 rounded-lg theme-transition ${
+                        theme === 'dark' 
+                            ? 'liquid-glass-dark border-gray-600 hover:border-gray-500' 
+                            : 'liquid-glass border-gray-200 hover:border-gray-300'
+                    } border`}
+                >
+                    {/* Main clickable area for analysis */}
+                    <div 
+                        className="cursor-pointer"
+                        onClick={() => onClick(article)}
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-32 h-24 rounded-lg flex-shrink-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                                {article.image_url ? (
+                                    <img 
+                                        src={article.image_url} 
+                                        alt=""
+                                        className="w-full h-full object-cover rounded-lg"
+                                        onError={(e) => { 
+                                            e.target.style.display = 'none';
+                                            e.target.nextElementSibling.style.display = 'flex';
+                                        }}
+                                    />
+                                ) : null}
+                                <div 
+                                    className={`w-full h-full flex items-center justify-center rounded-lg ${article.image_url ? 'hidden' : 'flex'}`}
+                                    style={{ display: article.image_url ? 'none' : 'flex' }}
+                                >
+                                    <svg 
+                                        className="w-12 h-12 text-gray-500 dark:text-gray-400" 
+                                        fill="currentColor" 
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className={`font-semibold text-lg mb-2 ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                }`}>
+                                    {article.title}
+                                </h3>
+                                
+                                <div className={`text-sm mb-2 ${
+                                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                                }`}>
+                                    <span className="font-medium">{article.source_id || 'Unknown Source'}</span>
+                                    <span className="mx-2">•</span>
+                                    <span>{article.formatted_date}</span>
+                                </div>
+                                
+                                <p className={`text-sm leading-relaxed ${
+                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
+                                }`}>
+                                    {truncateText(article.description || article.content)}
+                                </p>
+                                
+                                {article.category && (
+                                    <div className="mt-3">
+                                        <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                                            theme === 'dark' 
+                                                ? 'bg-blue-900 text-blue-200' 
+                                                : 'bg-blue-100 text-blue-800'
+                                        }`}>
+                                            {Array.isArray(article.category) ? article.category.join(', ') : article.category}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={() => onClick(article)}
+                            className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                theme === 'dark' 
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                            }`}
+                        >
+                            <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            Analyze
+                        </button>
+                        
+                        {article.link && (
+                            <button
+                                onClick={handleViewFullArticle}
+                                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                    theme === 'dark' 
+                                        ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                                        : 'bg-gray-500 text-white hover:bg-gray-600'
+                                }`}
+                                title="View full article in new tab"
+                            >
+                                <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                View Full Article
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Main News App Component
+        const NewsApp = () => {
+            const [theme, setTheme] = useState(() => 
+                localStorage.getItem('theme') || 'light'
+            );
+            const [articles, setArticles] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [showFloatingChat, setShowFloatingChat] = useState(false);
+            const [selectedArticle, setSelectedArticle] = useState(null);
+            const [currentUser, setCurrentUser] = useState(null);
+            const [showUserMenu, setShowUserMenu] = useState(false);
+            const [refreshSuccess, setRefreshSuccess] = useState(false);
+
+            useEffect(() => {
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+                localStorage.setItem('theme', theme);
+            }, [theme]);
+
+            useEffect(() => {
+                fetchNews();
+            }, []);
+
+            const fetchNews = async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    
+                    // Add cache-busting parameter to ensure fresh data
+                    const timestamp = Date.now();
+                    const response = await fetch(`/news/articles?limit=20&_t=${timestamp}`, {
+                        method: 'GET',
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache',
+                            'Expires': '0'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch news');
+                    }
+                    
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        setArticles(data.articles);
+                        setError(null); // Clear any previous errors
+                        setRefreshSuccess(true);
+                        // Hide success message after 3 seconds
+                        setTimeout(() => setRefreshSuccess(false), 3000);
+                    } else {
+                        throw new Error(data.error || 'Unknown error');
+                    }
+                } catch (err) {
+                    console.error('Error fetching news:', err);
+                    setError(err.message);
+                    setRefreshSuccess(false);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleNewsClick = (article) => {
+                setSelectedArticle(article);
+                setShowFloatingChat(true);
+            };
+
+            const handleOpenFullChat = () => {
+                // Add a timestamp to force a fresh load and ensure state transfer
+                const timestamp = Date.now();
+                console.log('🔄 Redirecting to main chatbot with timestamp:', timestamp);
+                
+                // Use replace to ensure clean navigation and force reload
+                // Fix: Redirect to /chatbot instead of /
+                window.location.replace(`/chatbot?t=${timestamp}`);
+            };
+
+            const toggleTheme = () => {
+                setTheme(theme === 'light' ? 'dark' : 'light');
+            };
+
+            // Logout function
+            const handleLogout = async () => {
+                try {
+                    const response = await fetch('/auth/logout', { 
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        window.location.href = '/auth/login';
+                    }
+                } catch (error) {
+                    console.error('Logout failed:', error);
+                }
+            };
+
+            // Check authentication status
+            const checkAuth = async () => {
+                try {
+                    const response = await fetch('/auth/check', {
+                        credentials: 'include'
+                    });
+                    const data = await response.json();
+                    if (data.authenticated) {
+                        setCurrentUser(data.user);
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                }
+            };
+
+            useEffect(() => {
+                checkAuth();
+            }, []);
+
+            return (
+                <div className={`min-h-screen theme-transition ${
+                    theme === 'dark' 
+                        ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
+                        : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'
+                }`}>
+                    {/* Header */}
+                    <div className="sticky top-0 z-50">
+                        <UniversalNavbar 
+                            currentPage="news"
+                            theme={theme}
+                            currentUser={currentUser}
+                            showUserMenu={showUserMenu}
+                            setShowUserMenu={setShowUserMenu}
+                            handleLogout={handleLogout}
+                            title="News Articles"
+                        />
+                    </div>
+
+                    {/* Content */}
+                    <div className="max-w-6xl mx-auto px-4 py-8">
+                        {error && (
+                            <div className={`mb-6 p-4 rounded-lg border ${
+                                theme === 'dark' 
+                                    ? 'bg-red-900 border-red-700 text-red-200' 
+                                    : 'bg-red-50 border-red-200 text-red-800'
+                            }`}>
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                    </svg>
+                                    Error loading news: {error}
+                                </div>
+                            </div>
+                        )}
+
+                        {refreshSuccess && (
+                            <div className={`mb-6 p-4 rounded-lg border ${
+                                theme === 'dark' 
+                                    ? 'bg-green-900 border-green-700 text-green-200' 
+                                    : 'bg-green-50 border-green-200 text-green-800'
+                            }`}>
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    News refreshed successfully! Showing latest articles.
+                                </div>
+                            </div>
+                        )}
+
+                        {loading && articles.length === 0 ? (
+                            <div className="text-center py-12">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                                <h3 className={`text-lg font-semibold mb-2 ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                }`}>Loading news...</h3>
+                                <p className={`${
+                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                }`}>Fetching latest Malaysia news articles</p>
+                            </div>
+                        ) : articles.length === 0 ? (
+                            <div className="text-center py-12">
+                                <div className={`text-6xl mb-4 ${
+                                    theme === 'dark' ? 'text-gray-600' : 'text-gray-400'
+                                }`}>📰</div>
+                                <h3 className={`text-lg font-semibold mb-2 ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                }`}>No news articles found</h3>
+                                <p className={`${
+                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                }`}>Try refreshing to load the latest news</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className={`mb-6 flex items-center justify-between ${
+                                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                                }`}>
+                                    <span>Found {articles.length} news articles. Click on any article to analyze its market impact.</span>
+                                    <button
+                                        onClick={fetchNews}
+                                        disabled={loading}
+                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                                            theme === 'dark' 
+                                                ? 'bg-gray-600 text-gray-200 hover:bg-gray-500 disabled:bg-gray-700 disabled:text-gray-400' 
+                                                : 'bg-gray-300 text-gray-700 hover:bg-gray-400 disabled:bg-gray-200 disabled:text-gray-500'
+                                        }`}
+                                        title={loading ? "Refreshing news..." : "Refresh news"}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Refreshing...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                </svg>
+                                                <span>Refresh</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                                
+                                {articles.map((article) => (
+                                    <NewsItem 
+                                        key={article._id} 
+                                        article={article} 
+                                        theme={theme}
+                                        onClick={handleNewsClick}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Floating Chatbot */}
+                    <FloatingChatbot
+                        isVisible={showFloatingChat}
+                        onClose={() => setShowFloatingChat(false)}
+                        newsArticle={selectedArticle}
+                        theme={theme}
+                        onOpenFullChat={handleOpenFullChat}
+                    />
+                </div>
+            );
+        };
+
+        ReactDOM.render(<NewsApp />, document.getElementById('app'));
+    </script>
+</body>
+</html>
