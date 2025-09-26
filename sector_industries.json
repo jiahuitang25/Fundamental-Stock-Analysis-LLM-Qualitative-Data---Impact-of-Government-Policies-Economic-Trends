@@ -1,0 +1,202 @@
+[
+    {
+      "sector": "basic-materials",
+      "industries": [
+        "agricultural-inputs",
+        "aluminum",
+        "building-materials",
+        "chemicals",
+        "coking-coal",
+        "copper",
+        "gold",
+        "lumber-wood-production",
+        "other-industrial-metals-mining",
+        "other-precious-metals-mining",
+        "paper-paper-products",
+        "silver",
+        "specialty-chemicals",
+        "steel"
+      ]
+    },
+    {
+      "sector": "communication-services",
+      "industries": [
+        "advertising-agencies",
+        "broadcasting",
+        "electronic-gaming-multimedia",
+        "entertainment",
+        "internet-content-information",
+        "publishing",
+        "telecom-services"
+      ]
+    },
+    {
+      "sector": "consumer-cyclical",
+      "industries": [
+        "apparel-manufacturing",
+        "apparel-retail",
+        "auto-manufacturers",
+        "auto-parts",
+        "auto-truck-dealerships",
+        "department-stores",
+        "footwear-accessories",
+        "furnishings-fixtures-appliances",
+        "gambling",
+        "home-improvement-retail",
+        "internet-retail",
+        "leisure",
+        "lodging",
+        "luxury-goods",
+        "packaging-containers",
+        "personal-services",
+        "recreational-vehicles",
+        "residential-construction",
+        "resorts-casinos",
+        "restaurants",
+        "specialty-retail",
+        "textile-manufacturing",
+        "travel-services"
+      ]
+    },
+    {
+      "sector": "consumer-defensive",
+      "industries": [
+        "beverages-brewers",
+        "beverages-non-alcoholic",
+        "beverages-wineries-distilleries",
+        "confectioners",
+        "discount-stores",
+        "education-training-services",
+        "farm-products",
+        "food-distribution",
+        "grocery-stores",
+        "household-personal-products",
+        "packaged-foods",
+        "tobacco"
+      ]
+    },
+    {
+      "sector": "energy",
+      "industries": [
+        "oil-gas-drilling",
+        "oil-gas-e-p",
+        "oil-gas-equipment-services",
+        "oil-gas-integrated",
+        "oil-gas-midstream",
+        "oil-gas-refining-marketing",
+        "thermal-coal",
+        "uranium"
+      ]
+    },
+    {
+      "sector": "financial-services",
+      "industries": [
+        "asset-management",
+        "banks-diversified",
+        "banks-regional",
+        "capital-markets",
+        "credit-services",
+        "financial-conglomerates",
+        "financial-data-stock-exchanges",
+        "insurance-brokers",
+        "insurance-diversified",
+        "insurance-life",
+        "insurance-property-casualty",
+        "insurance-reinsurance",
+        "insurance-specialty",
+        "mortgage-finance",
+        "shell-companies"
+      ]
+    },
+    {
+      "sector": "healthcare",
+      "industries": [
+        "biotechnology",
+        "diagnostics-research",
+        "drug-manufacturers-general",
+        "drug-manufacturers-specialty-generic",
+        "health-information-services",
+        "healthcare-plans",
+        "medical-care-facilities",
+        "medical-devices",
+        "medical-distribution",
+        "medical-instruments-supplies",
+        "pharmaceutical-retailers"
+      ]
+    },
+    {
+      "sector": "industrials",
+      "industries": [
+        "aerospace-defense",
+        "airlines",
+        "airports-air-services",
+        "building-products-equipment",
+        "business-equipment-supplies",
+        "conglomerates",
+        "consulting-services",
+        "electrical-equipment-parts",
+        "engineering-construction",
+        "farm-heavy-construction-machinery",
+        "industrial-distribution",
+        "infrastructure-operations",
+        "integrated-freight-logistics",
+        "marine-shipping",
+        "metal-fabrication",
+        "pollution-treatment-controls",
+        "railroads",
+        "rental-leasing-services",
+        "security-protection-services",
+        "specialty-business-services",
+        "specialty-industrial-machinery",
+        "staffing-employment-services",
+        "tools-accessories",
+        "trucking",
+        "waste-management"
+      ]
+    },
+    {
+      "sector": "real-estate",
+      "industries": [
+        "real-estate-development",
+        "real-estate-diversified",
+        "real-estate-services",
+        "reit-diversified",
+        "reit-healthcare-facilities",
+        "reit-hotel-motel",
+        "reit-industrial",
+        "reit-mortgage",
+        "reit-office",
+        "reit-residential",
+        "reit-retail",
+        "reit-specialty"
+      ]
+    },
+    {
+      "sector": "technology",
+      "industries": [
+        "communication-equipment",
+        "computer-hardware",
+        "consumer-electronics",
+        "electronic-components",
+        "electronics-computer-distribution",
+        "information-technology-services",
+        "scientific-technical-instruments",
+        "semiconductor-equipment-materials",
+        "semiconductors",
+        "software-application",
+        "software-infrastructure",
+        "solar"
+      ]
+    },
+    {
+      "sector": "utilities",
+      "industries": [
+        "utilities-diversified",
+        "utilities-independent-power-producers",
+        "utilities-regulated-electric",
+        "utilities-regulated-gas",
+        "utilities-regulated-water",
+        "utilities-renewable"
+      ]
+    }
+  ]
