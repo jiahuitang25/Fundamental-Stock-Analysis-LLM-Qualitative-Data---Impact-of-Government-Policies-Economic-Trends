@@ -1,4 +1,4 @@
-# Stock Analysis Application - System Description
+# Fundamental-Stock-Analysis-LLM-Qualitative-Data---Impact-of-Government-Policies-Economic-Trends - System Description
 
 ## 🚀 Overview
 
