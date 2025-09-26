@@ -309,7 +309,6 @@ Context Update → User Response
 - **Query Cache**: 7-day TTL for analysis results
 - **Financial Cache**: 1-day TTL for market data
 - **Ticker Cache**: 30-day TTL for company mappings
-- **News Cache**: 5-minute TTL for news articles
 
 ### Optimization Techniques
 - **Connection Pooling**: MongoDB connection optimization
@@ -412,12 +411,3 @@ python app.py
 - **Real-time Updates**: WebSocket integration
 - **Advanced Caching**: Redis integration
 - **Auto-scaling**: Dynamic resource allocation
-
----
-
-**Version**: 2.0.0  
-**Last Updated**: September 2024  
-**Architecture**: Modular Flask Application  
-**AI Engine**: RAG with OpenAI GPT-4  
-**Database**: MongoDB with Vector Storage  
-**Deployment**: Cloud-ready with Docker support
